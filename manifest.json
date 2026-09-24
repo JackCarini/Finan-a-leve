@@ -1,0 +1,15 @@
+{
+  "name": "Finanças Leve",
+  "short_name": "Finanças",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#059669",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2910/2910791.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
