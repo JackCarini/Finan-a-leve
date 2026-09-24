@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt">
 <head>
@@ -15,14 +16,20 @@
         body {
             background-color: #f4f6f8;
             color: #333;
-            padding: 20px;
+            padding: 15px;
             max-width: 600px;
             margin: 0 auto;
         }
         h1 {
             text-align: center;
             color: #2c3e50;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        h3 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: #2c3e50;
         }
         .card {
             background: #fff;
@@ -36,13 +43,12 @@
             font-weight: bold;
             color: #27ae60;
             text-align: center;
-            margin-bottom: 15px;
         }
         input, button {
             width: 100%;
             padding: 10px;
-            margin-top: 8px;
-            margin-bottom: 8px;
+            margin-top: 6px;
+            margin-bottom: 6px;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 1rem;
@@ -59,23 +65,34 @@
         }
         ul {
             list-style: none;
-            margin-top: 10px;
+            margin-top: 8px;
         }
         li {
             display: flex;
             justify-content: space-between;
-            padding: 8px;
+            align-items: center;
+            padding: 8px 4px;
             border-bottom: 1px solid #eee;
+            font-size: 0.95rem;
         }
         .delete-btn {
             background: #e74c3c;
             color: white;
             border: none;
-            padding: 2px 8px;
+            padding: 4px 8px;
             border-radius: 4px;
             cursor: pointer;
             width: auto;
             margin: 0;
+            font-size: 0.85rem;
+        }
+        .item-comprado {
+            text-decoration: line-through;
+            color: #95a5a6;
+        }
+        .flex-row {
+            display: flex;
+            gap: 6px;
         }
     </style>
 </head>
@@ -83,30 +100,45 @@
 
     <h1>Finanças Leve</h1>
 
+    <!-- Saldo -->
     <div class="card">
         <div class="total" id="saldoTotal">Saldo: R$ 0,00</div>
     </div>
 
+    <!-- Transações -->
     <div class="card">
         <h3>Adicionar Transação</h3>
-        <input type="text" id="descricao" placeholder="Descrição (ex: Salário, Mercado)">
-        <input type="number" id="valor" placeholder="Valor (positivo para ganho, negativo para gasto)">
-        <button onclick="adicionarTransacao()">Adicionar</button>
+        <input type="text" id="descricaoTransacao" placeholder="Descrição (ex: Salário, Mercado)">
+        <input type="number" id="valorTransacao" placeholder="Valor (positivo ganho, negativo gasto)">
+        <button onclick="adicionarTransacao()">Adicionar Transação</button>
     </div>
 
+    <!-- Histórico de Transações -->
     <div class="card">
-        <h3>Histórico</h3>
+        <h3>Histórico Financeiro</h3>
         <ul id="listaTransacoes"></ul>
     </div>
 
+    <!-- Lista de Compras -->
+    <div class="card">
+        <h3>Lista de Compras</h3>
+        <div class="flex-row">
+            <input type="text" id="itemCompra" placeholder="Novo item (ex: Arroz, Leite)">
+            <button onclick="adicionarItemCompra()" style="width: 100px;">Adicionar</button>
+        </div>
+        <ul id="listaCompras"></ul>
+    </div>
+
     <script>
+        // Gestão de Transações
         let transacoes = JSON.parse(localStorage.getItem('transacoes')) || [];
+        let compras = JSON.parse(localStorage.getItem('compras')) || [];
 
         function atualizarApp() {
-            const lista = document.getElementById('listaTransacoes');
+            // Atualizar Transações
+            const listaT = document.getElementById('listaTransacoes');
             const saldoTotal = document.getElementById('saldoTotal');
-            lista.innerHTML = '';
-            
+            listaT.innerHTML = '';
             let total = 0;
 
             transacoes.forEach((t, index) => {
@@ -121,30 +153,70 @@
                         <button class="delete-btn" onclick="removerTransacao(${index})">X</button>
                     </span>
                 `;
-                lista.appendChild(li);
+                listaT.appendChild(li);
             });
 
             saldoTotal.innerText = `Saldo: R$ ${total.toFixed(2)}`;
             localStorage.setItem('transacoes', JSON.stringify(transacoes));
+
+            // Atualizar Lista de Compras
+            const listaC = document.getElementById('listaCompras');
+            listaC.innerHTML = '';
+
+            compras.forEach((c, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span onclick="alternarCompra(${index})" style="cursor: pointer; flex-grow: 1;" class="${c.comprado ? 'item-comprado' : ''}">
+                        ${c.comprado ? '✅ ' : '⬜ '} ${c.nome}
+                    </span>
+                    <button class="delete-btn" onclick="removerCompra(${index})">X</button>
+                `;
+                listaC.appendChild(li);
+            });
+            localStorage.setItem('compras', JSON.stringify(compras));
         }
 
         function adicionarTransacao() {
-            const desc = document.getElementById('descricao').value;
-            const val = parseFloat(document.getElementById('valor').value);
+            const desc = document.getElementById('descricaoTransacao').value;
+            const val = parseFloat(document.getElementById('valorTransacao').value);
 
             if (desc.trim() === '' || isNaN(val)) {
-                alert('Por favor, preencha a descrição e um valor válido.');
+                alert('Preencha a descrição e um valor válido.');
                 return;
             }
 
             transacoes.push({ descricao: desc, valor: val });
-            document.getElementById('descricao').value = '';
-            document.getElementById('valor').value = '';
+            document.getElementById('descricaoTransacao').value = '';
+            document.getElementById('valorTransacao').value = '';
             atualizarApp();
         }
 
         function removerTransacao(index) {
             transacoes.splice(index, 1);
+            atualizarApp();
+        }
+
+        // Funções da Lista de Compras
+        function adicionarItemCompra() {
+            const item = document.getElementById('itemCompra').value;
+
+            if (item.trim() === '') {
+                alert('Escreva o nome do item para a lista.');
+                return;
+            }
+
+            compras.push({ nome: item, comprado: false });
+            document.getElementById('itemCompra').value = '';
+            atualizarApp();
+        }
+
+        function alternarCompra(index) {
+            compras[index].comprado = !compras[index].comprado;
+            atualizarApp();
+        }
+
+        function removerCompra(index) {
+            compras.splice(index, 1);
             atualizarApp();
         }
 
