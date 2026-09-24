@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Gastei Quanto?</title>
+    <title>Finanças Leve</title>
     <link rel="manifest" href="manifest.json">
     <style>
         * {
@@ -66,34 +66,6 @@
             height: 100%;
             width: 0%;
             transition: width 0.3s ease;
-        }
-        .security-card {
-            background: #e8f8f5;
-            border: 1px solid #a3e4d7;
-            border-radius: 16px;
-            padding: 18px;
-            margin-bottom: 15px;
-        }
-        .security-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: bold;
-            color: #117a65;
-            margin-bottom: 8px;
-            font-size: 1.05rem;
-        }
-        .security-desc {
-            font-size: 0.9rem;
-            color: #1abc9c;
-            line-height: 1.4;
-            margin-bottom: 10px;
-        }
-        .mentor-tip {
-            font-size: 0.85rem;
-            color: #7f8c8d;
-            border-top: 1px dashed #d1f2eb;
-            padding-top: 8px;
         }
         .market-card {
             display: flex;
@@ -261,18 +233,6 @@
             </div>
         </div>
 
-        <div class="security-card">
-            <div class="security-header">
-                🛡️ <span id="txtReservaTitulo">Faltam R$ 2.000</span>
-            </div>
-            <div class="security-desc">
-                Para atingir a sua margem de segurança prevista.
-            </div>
-            <div class="mentor-tip" id="txtDicaMentor">
-                💡 Dica: Pequenos cortes hoje evitam endividamento amanhã.
-            </div>
-        </div>
-
         <div class="market-card">
             <div>
                 <strong>Supermercado & Relatório</strong>
@@ -307,7 +267,7 @@
             <button class="primary-btn" onclick="salvarBuscaEncarte()" style="margin-top: 4px; margin-bottom: 8px;">Salvar Preferência</button>
             
             <div id="containerBotaoEncarte" style="display:none; margin-top: 10px;">
-                <a id="linkAcessoEncarte" href="#" target="_blank" class="secondary-btn" style="text-decoration: none;">🛒 Ver Encarte / Ofertas Online</a>
+                <a id="linkAcessoEncarte" href="#" onclick="abrirEncarte(event)" class="secondary-btn" style="text-decoration: none;">🛒 Ver Encarte / Ofertas Online</a>
             </div>
         </div>
 
@@ -350,21 +310,6 @@
         </div>
     </div>
 
-    <!-- ABA 4: RESERVA -->
-    <div id="tab-reserva" class="tab-content">
-        <div class="card" style="text-align: center;">
-            <div style="font-size: 3rem; margin-bottom: 10px;">🛡️</div>
-            <h3>Reserva de Segurança</h3>
-            <p style="color: #64748b; font-size: 0.9rem; margin-top: 8px; line-height: 1.4;">
-                A sua reserva é intocável e protege a estabilidade da sua casa contra imprevistos.
-            </p>
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; margin-top: 15px;">
-                <div style="font-size: 0.85rem; color: #7f8c8d;">Montante Alvo de Segurança</div>
-                <div style="font-size: 1.4rem; font-weight: bold; color: #27ae60; margin-top: 4px;" id="txtAlvoReserva">R$ 2.000,00</div>
-            </div>
-        </div>
-    </div>
-
     <!-- BARRA DE NAVEGAÇÃO INFERIOR -->
     <nav class="bottom-nav">
         <button class="nav-item active" onclick="mudarAba('inicio', this)">
@@ -376,18 +321,15 @@
         <button class="nav-item" onclick="mudarAba('registrar', this)">
             <div>📷</div>Registrar
         </button>
-        <button class="nav-item" onclick="mudarAba('reserva', this)">
-            <div>🛡️</div>Reserva
-        </button>
     </nav>
 
     <script>
-        let transacoes = JSON.parse(localStorage.getItem('app_transacoes_v7')) || [];
-        let encarteItems = JSON.parse(localStorage.getItem('app_encarte_v7')) || [];
-        let limiteMensal = parseFloat(localStorage.getItem('app_limite_v7')) || 500;
+        let transacoes = JSON.parse(localStorage.getItem('app_transacoes_v8')) || [];
+        let encarteItems = JSON.parse(localStorage.getItem('app_encarte_v8')) || [];
+        let limiteMensal = parseFloat(localStorage.getItem('app_limite_v8')) || 500;
         
-        let nomeMercadoSalvo = localStorage.getItem('app_nome_mercado_v7') || '';
-        let cidadeMercadoSalva = localStorage.getItem('app_cidade_mercado_v7') || '';
+        let nomeMercadoSalvo = localStorage.getItem('app_nome_mercado_v8') || '';
+        let cidadeMercadoSalva = localStorage.getItem('app_cidade_mercado_v8') || '';
 
         function mudarAba(nomeAba, elBtn) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -402,7 +344,6 @@
                 if(nomeAba === 'inicio') botoes[0].classList.add('active');
                 if(nomeAba === 'mercado') botoes[1].classList.add('active');
                 if(nomeAba === 'registrar') botoes[2].classList.add('active');
-                if(nomeAba === 'reserva') botoes[3].classList.add('active');
             }
             window.scrollTo(0, 0);
         }
@@ -419,8 +360,8 @@
             nomeMercadoSalvo = nomeM;
             cidadeMercadoSalva = cidadeM;
 
-            localStorage.setItem('app_nome_mercado_v7', nomeMercadoSalvo);
-            localStorage.setItem('app_cidade_mercado_v7', cidadeMercadoSalva);
+            localStorage.setItem('app_nome_mercado_v8', nomeMercadoSalvo);
+            localStorage.setItem('app_cidade_mercado_v8', cidadeMercadoSalva);
 
             atualizarInterfaceEncarteBusca();
             alert('Preferência de mercado guardada com sucesso!');
@@ -428,26 +369,29 @@
 
         function atualizarInterfaceEncarteBusca() {
             const container = document.getElementById('containerBotaoEncarte');
-            const linkBtn = document.getElementById('linkAcessoEncarte');
             const inputNome = document.getElementById('inputNomeMercado');
             const inputCidade = document.getElementById('inputCidadeMercado');
 
             if(nomeMercadoSalvo && cidadeMercadoSalva) {
                 inputNome.value = nomeMercadoSalvo;
                 inputCidade.value = cidadeMercadoSalva;
-
-                // Monta o link inteligente de pesquisa web focada em encartes e folhetos
-                const termoBusca = encodeURIComponent(`encarte folheto ofertas ${nomeMercadoSalvo} ${cidadeMercadoSalva}`);
-                linkBtn.href = `https://www.google.com/search?q=${termoBusca}`;
                 container.style.display = 'block';
             } else {
                 container.style.display = 'none';
             }
         }
 
+        function abrirEncarte(event) {
+            event.preventDefault();
+            if(nomeMercadoSalvo && cidadeMercadoSalva) {
+                const termoBusca = encodeURIComponent(`encarte folheto ofertas ${nomeMercadoSalvo} ${cidadeMercadoSalva}`);
+                const url = `https://www.google.com/search?q=${termoBusca}`;
+                window.open(url, '_system');
+            }
+        }
+
         function atualizarApp() {
             let totalGastos = 0;
-            let totalReceitas = 0;
             let totalAlimentacaoTransacoes = 0;
 
             const histEl = document.getElementById('historicoTransacoes');
@@ -462,8 +406,6 @@
                     if(descLower.includes('mercado') || descLower.includes('supermercado') || descLower.includes('padaria') || descLower.includes('feira') || descLower.includes('comida')) {
                         totalAlimentacaoTransacoes += valorAbs;
                     }
-                } else {
-                    totalReceitas += t.valor;
                 }
 
                 const li = document.createElement('li');
@@ -496,16 +438,9 @@
             barra.style.width = percentual + '%';
             barra.style.background = percentual > 85 ? '#e74c3c' : '#27ae60';
 
-            let alvoReserva = totalReceitas > 0 ? totalReceitas * 0.20 : 2000;
-            let faltaReserva = alvoReserva - (totalReceitas * 0.1); 
-            if(faltaReserva < 0) faltaReserva = 0;
-            
-            document.getElementById('txtReservaTitulo').innerText = `Faltam R$ ${faltaReserva.toFixed(0)}`;
-            document.getElementById('txtAlvoReserva').innerText = `R$ ${alvoReserva.toFixed(2)}`;
-
-            localStorage.setItem('app_transacoes_v7', JSON.stringify(transacoes));
-            localStorage.setItem('app_encarte_v7', JSON.stringify(encarteItems));
-            localStorage.setItem('app_limite_v7', limiteMensal);
+            localStorage.setItem('app_transacoes_v8', JSON.stringify(transacoes));
+            localStorage.setItem('app_encarte_v8', JSON.stringify(encarteItems));
+            localStorage.setItem('app_limite_v8', limiteMensal);
 
             renderizarEncarte();
             atualizarInterfaceEncarteBusca();
