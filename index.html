@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt">
 <head>
@@ -18,7 +19,6 @@
             padding: 15px;
             max-width: 600px;
             margin: 0 auto;
-            /* Aumentado o espaço inferior para evitar que a barra de sistema tape os elementos */
             padding-bottom: 120px; 
         }
         h2, h3 {
@@ -31,14 +31,12 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             margin-bottom: 15px;
         }
-        /* Aba Visibilidade */
         .tab-content {
             display: none;
         }
         .tab-content.active {
             display: block;
         }
-        /* Painel Início */
         .balance-title {
             font-size: 0.9rem;
             color: #7f8c8d;
@@ -70,7 +68,6 @@
             width: 0%;
             transition: width 0.3s ease;
         }
-        /* Alerta de Segurança */
         .security-card {
             background: #e8f8f5;
             border: 1px solid #a3e4d7;
@@ -99,7 +96,6 @@
             border-top: 1px dashed #d1f2eb;
             padding-top: 8px;
         }
-        /* Supermercado Card */
         .market-card {
             display: flex;
             justify-content: space-between;
@@ -120,7 +116,6 @@
             cursor: pointer;
             font-size: 0.85rem;
         }
-        /* Formulários e Inputs */
         input, select {
             width: 100%;
             padding: 12px;
@@ -153,7 +148,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 5px;
+            padding: 12px 8px;
             border-bottom: 1px solid #f1f2f6;
             font-size: 0.95rem;
         }
@@ -165,7 +160,17 @@
             border-radius: 6px;
             cursor: pointer;
         }
-        /* Barra de Navegação Inferior Ajustada */
+        /* Estilos do comparador de preços / encarte */
+        .price-tag {
+            font-size: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            text-align: right;
+        }
+        .badge-up { color: #e74c3c; font-weight: bold; }
+        .badge-down { color: #27ae60; font-weight: bold; }
+        .badge-equal { color: #7f8c8d; }
+
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -175,7 +180,6 @@
             display: flex;
             justify-content: space-around;
             padding: 12px 0;
-            /* Adiciona espaço seguro para telemóveis com barra de sistema/gestos inferior */
             padding-bottom: calc(12px + env(safe-area-inset-bottom, 20px));
             box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
             z-index: 9999;
@@ -200,7 +204,6 @@
             font-size: 1.3rem;
             margin-bottom: 2px;
         }
-        /* Leitor QR / Câmara */
         .scanner-box {
             border: 2px dashed #cbd5e1;
             padding: 25px;
@@ -241,22 +244,29 @@
 
         <div class="market-card">
             <div>
-                <strong>Supermercado do Mês</strong>
+                <strong>Supermercado & Encarte</strong>
                 <div style="font-size: 0.85rem; color: #7f8c8d; margin-top: 2px;" id="txtTotalMercado">Total registado: R$ 0,00</div>
             </div>
-            <button class="btn-action-sm" onclick="mudarAba('mercado')">Ver Nota</button>
+            <button class="btn-action-sm" onclick="mudarAba('mercado')">Ver Encarte</button>
         </div>
     </div>
 
-    <!-- ABA 2: MERCADO (LISTA DE COMPRAS) -->
+    <!-- ABA 2: MERCADO & COMPARADOR DE PREÇOS -->
     <div id="tab-mercado" class="tab-content">
         <div class="card">
-            <h3>🛒 Lista de Supermercado</h3>
-            <div style="display: flex; gap: 6px; margin-top: 10px;">
-                <input type="text" id="inputItemMercado" placeholder="Novo item..." style="margin:0;">
-                <button class="primary-btn" style="width: 100px; padding: 0;" onclick="adicionarItemMercado()">Adicionar</button>
+            <h3>🛒 Comparador de Preços / Encarte do Mês</h3>
+            <p style="font-size: 0.85rem; color: #64748b; margin-top: 4px; margin-bottom: 15px;">
+                Adicione os produtos do encarte atual informando o preço deste mês e o preço anterior para ver o que subiu ou baixou.
+            </p>
+            
+            <input type="text" id="inputNomeProduto" placeholder="Nome do Produto (ex: Arroz 5kg, Leite)">
+            <div style="display: flex; gap: 8px;">
+                <input type="number" id="inputPrecoAtual" placeholder="Preço Atual (R$)" step="0.01" style="margin:0;">
+                <input type="number" id="inputPrecoAnterior" placeholder="Preço Anterior (R$)" step="0.01" style="margin:0;">
             </div>
-            <ul id="listaSupermercado"></ul>
+            <button class="primary-btn" style="margin-top: 12px;" onclick="adicionarItemEncarte()">Adicionar ao Comparador</button>
+            
+            <ul id="listaEncarte"></ul>
         </div>
     </div>
 
@@ -265,7 +275,7 @@
         <div class="card">
             <h3>📸 Leitor de Nota Fiscal / QR Code</h3>
             <div class="scanner-box">
-                <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 12px;">Capture o QR code da nota fiscal para importar os itens automaticamente</p>
+                <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 12px;">Capture o QR code da nota fiscal para importar os gastos automaticamente</p>
                 <input type="file" accept="image/*" capture="environment" id="fileScanner" style="display:none;" onchange="simularLeituraNota(this)">
                 <button class="primary-btn" onclick="document.getElementById('fileScanner').click()">Abrir Câmara / Ler QR</button>
             </div>
@@ -274,7 +284,7 @@
         <div class="card">
             <h3>➕ Nova Transação</h3>
             <input type="text" id="descTransacao" placeholder="Descrição (ex: Supermercado, Salário)">
-            <input type="number" id="valTransacao" placeholder="Valor (positivo ganho, negativo gasto)">
+            <input type="number" id="valTransacao" placeholder="Valor (positivo ganho, negativo gasto)" step="0.01">
             <button class="primary-btn" onclick="registarTransacao()">Registar no Fluxo</button>
         </div>
         
@@ -316,9 +326,9 @@
     </nav>
 
     <script>
-        let transacoes = JSON.parse(localStorage.getItem('app_transacoes_v4')) || [];
-        let mercadoItems = JSON.parse(localStorage.getItem('app_mercado_v4')) || [];
-        let limiteMensal = parseFloat(localStorage.getItem('app_limite_v4')) || 500;
+        let transacoes = JSON.parse(localStorage.getItem('app_transacoes_v5')) || [];
+        let encarteItems = JSON.parse(localStorage.getItem('app_encarte_v5')) || [];
+        let limiteMensal = parseFloat(localStorage.getItem('app_limite_v5')) || 500;
 
         function mudarAba(nomeAba, elBtn) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -349,7 +359,7 @@
             transacoes.forEach((t, index) => {
                 if (t.valor < 0) {
                     totalGastos += Math.abs(t.valor);
-                    if(t.descricao.toLowerCase().includes('mercado')) {
+                    if(t.descricao.toLowerCase().includes('mercado') || t.descricao.toLowerCase().includes('encarte')) {
                         totalMercadoCalc += Math.abs(t.valor);
                     }
                 } else {
@@ -383,13 +393,13 @@
             document.getElementById('txtReservaTitulo').innerText = `Faltam R$ ${faltaReserva.toFixed(0)}`;
             document.getElementById('txtAlvoReserva').innerText = `R$ ${alvoReserva.toFixed(2)}`;
 
-            document.getElementById('txtTotalMercado').innerText = `Total registado: R$ ${totalMercadoCalc.toFixed(2)}`;
+            document.getElementById('txtTotalMercado').innerText = `Itens no comparador: ${encarteItems.length}`;
 
-            localStorage.setItem('app_transacoes_v4', JSON.stringify(transacoes));
-            localStorage.setItem('app_mercado_v4', JSON.stringify(mercadoItems));
-            localStorage.setItem('app_limite_v4', limiteMensal);
+            localStorage.setItem('app_transacoes_v5', JSON.stringify(transacoes));
+            localStorage.setItem('app_encarte_v5', JSON.stringify(encarteItems));
+            localStorage.setItem('app_limite_v5', limiteMensal);
 
-            renderizarMercado();
+            renderizarEncarte();
         }
 
         function registarTransacao() {
@@ -421,44 +431,77 @@
             }
         }
 
-        function adicionarItemMercado() {
-            const item = document.getElementById('inputItemMercado').value;
-            if(!item) return;
-            mercadoItems.push({ nome: item, comprado: false });
-            document.getElementById('inputItemMercado').value = '';
-            renderizarMercado();
+        function adicionarItemEncarte() {
+            const nome = document.getElementById('inputNomeProduto').value;
+            const precoAtual = parseFloat(document.getElementById('inputPrecoAtual').value);
+            const precoAnterior = parseFloat(document.getElementById('inputPrecoAnterior').value);
+
+            if(!nome || isNaN(precoAtual)) {
+                alert('Insira pelo menos o nome do produto e o preço atual.');
+                return;
+            }
+
+            encarteItems.push({ 
+                nome: nome, 
+                atual: precoAtual, 
+                anterior: isNaN(precoAnterior) ? precoAtual : precoAnterior 
+            });
+
+            document.getElementById('inputNomeProduto').value = '';
+            document.getElementById('inputPrecoAtual').value = '';
+            document.getElementById('inputPrecoAnterior').value = '';
+            
+            atualizarApp();
         }
 
-        function renderizarMercado() {
-            const listaM = document.getElementById('listaSupermercado');
-            listaM.innerHTML = '';
+        function renderizarEncarte() {
+            const listaE = document.getElementById('listaEncarte');
+            listaE.innerHTML = '';
             
-            mercadoItems.forEach((m, idx) => {
+            if(encarteItems.length === 0) {
+                listaE.innerHTML = '<li style="color: #95a5a6; text-align: center; display: block; padding: 15px;">Nenhum produto cadastrado no encarte ainda.</li>';
+                return;
+            }
+
+            encarteItems.forEach((item, idx) => {
+                let diff = item.atual - item.anterior;
+                let badgeClass = 'badge-equal';
+                let txtDiff = '(=) Estável';
+
+                if (diff > 0) {
+                    badgeClass = 'badge-up';
+                    txtDiff = `📈 Subiu R$ ${diff.toFixed(2)}`;
+                } else if (diff < 0) {
+                    badgeClass = 'badge-down';
+                    txtDiff = `📉 Baixou R$ ${Math.abs(diff).toFixed(2)}`;
+                }
+
                 const li = document.createElement('li');
                 li.innerHTML = `
-                    <span onclick="alternarItem(${idx})" style="cursor:pointer; flex-grow:1; text-decoration: ${m.comprado ? 'line-through' : 'none'}; color: ${m.comprado ? '#95a5a6' : '#333'}">
-                        ${m.comprado ? '✅ ' : '⬜ '} ${m.nome}
-                    </span>
-                    <button class="delete-btn" onclick="removerItemMercado(${idx})">X</button>
+                    <div>
+                        <strong>${item.nome}</strong>
+                        <div style="font-size: 0.8rem; color: #7f8c8d;">Anterior: R$ ${item.anterior.toFixed(2)}</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div class="price-tag">
+                            <span style="font-weight: bold; color: #2c3e50;">R$ ${item.atual.toFixed(2)}</span>
+                            <span class="${badgeClass}">${txtDiff}</span>
+                        </div>
+                        <button class="delete-btn" onclick="removerItemEncarte(${idx})">X</button>
+                    </div>
                 `;
-                listaM.appendChild(li);
+                listaE.appendChild(li);
             });
-            localStorage.setItem('app_mercado_v4', JSON.stringify(mercadoItems));
         }
 
-        function alternarItem(idx) {
-            mercadoItems[idx].comprado = !mercadoItems[idx].comprado;
-            renderizarMercado();
-        }
-
-        function removerItemMercado(idx) {
-            mercadoItems.splice(idx, 1);
-            renderizarMercado();
+        function removerItemEncarte(idx) {
+            encarteItems.splice(idx, 1);
+            atualizarApp();
         }
 
         function simularLeituraNota(input) {
             if(input.files && input.files[0]) {
-                alert('📷 Nota fiscal lida com sucesso! Adicionado item simulado de Supermercado (R$ 150,00) ao histórico.');
+                alert('📷 Nota fiscal lida com sucesso! Adicionado registo de Supermercado ao histórico.');
                 transacoes.push({ descricao: 'Supermercado (Nota Fiscal)', valor: -150.00 });
                 atualizarApp();
                 mudarAba('inicio');
