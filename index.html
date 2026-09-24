@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt">
 <head>
@@ -44,7 +43,15 @@
             color: #27ae60;
             text-align: center;
         }
-        input, button {
+        .reserva-box {
+            background: #e8f8f5;
+            border-left: 4px solid #1abc9c;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 0.95rem;
+            color: #16a085;
+        }
+        input, button, select {
             width: 100%;
             padding: 10px;
             margin-top: 6px;
@@ -100,16 +107,19 @@
 
     <h1>Finanças Leve</h1>
 
-    <!-- Saldo -->
+    <!-- Saldo e Reserva de Segurança -->
     <div class="card">
-        <div class="total" id="saldoTotal">Saldo: R$ 0,00</div>
+        <div class="total" id="saldoTotal">Saldo Disponível: R$ 0,00</div>
+        <div class="reserva-box" id="reservaSeguranca">
+            🛡️ Reserva de Segurança recomendada (20%): R$ 0,00
+        </div>
     </div>
 
     <!-- Transações -->
     <div class="card">
         <h3>Adicionar Transação</h3>
-        <input type="text" id="descricaoTransacao" placeholder="Descrição (ex: Salário, Mercado)">
-        <input type="number" id="valorTransacao" placeholder="Valor (positivo ganho, negativo gasto)">
+        <input type="text" id="descricaoTransacao" placeholder="Descrição (ex: Salário, Supermercado)">
+        <input type="number" id="valorTransacao" placeholder="Valor (+ ganho, - gasto)">
         <button onclick="adicionarTransacao()">Adicionar Transação</button>
     </div>
 
@@ -119,30 +129,47 @@
         <ul id="listaTransacoes"></ul>
     </div>
 
-    <!-- Lista de Compras -->
+    <!-- Lista de Compras para o Supermercado -->
     <div class="card">
-        <h3>Lista de Compras</h3>
+        <h3>Lista de Compras (Supermercado)</h3>
         <div class="flex-row">
-            <input type="text" id="itemCompra" placeholder="Novo item (ex: Arroz, Leite)">
+            <input type="text" id="itemCompra" placeholder="Item (ex: Arroz, Detergente)">
             <button onclick="adicionarItemCompra()" style="width: 100px;">Adicionar</button>
         </div>
         <ul id="listaCompras"></ul>
     </div>
 
+    <!-- Comparador de Preços / Oportunidade -->
+    <div class="card">
+        <h3>Comparador Rápido de Preços</h3>
+        <input type="text" id="nomeProdutoComp" placeholder="Nome do produto">
+        <div class="flex-row">
+            <input type="number" id="precoMercadoA" placeholder="Preço Mercado A (R$)">
+            <input type="number" id="precoMercadoB" placeholder="Preço Mercado B (R$)">
+        </div>
+        <button onclick="compararPrecos()" style="background-color: #3498db;">Comparar Oportunidade</button>
+        <p id="resultadoComparacao" style="margin-top: 8px; font-weight: bold; font-size: 0.9rem; color: #2980b9;"></p>
+    </div>
+
     <script>
-        // Gestão de Transações
-        let transacoes = JSON.parse(localStorage.getItem('transacoes')) || [];
-        let compras = JSON.parse(localStorage.getItem('compras')) || [];
+        let transacoes = JSON.parse(localStorage.getItem('transacoes_v2')) || [];
+        let compras = JSON.parse(localStorage.getItem('compras_v2')) || [];
 
         function atualizarApp() {
-            // Atualizar Transações
             const listaT = document.getElementById('listaTransacoes');
             const saldoTotal = document.getElementById('saldoTotal');
+            const reservaSeguranca = document.getElementById('reservaSeguranca');
             listaT.innerHTML = '';
-            let total = 0;
+            
+            let totalReceitas = 0;
+            let totalDespesas = 0;
+            let saldo = 0;
 
             transacoes.forEach((t, index) => {
-                total += t.valor;
+                saldo += t.valor;
+                if(t.valor > 0) totalReceitas += t.valor;
+                else totalDespesas += Math.abs(t.valor);
+
                 const li = document.createElement('li');
                 li.innerHTML = `
                     <span>${t.descricao}</span>
@@ -156,8 +183,13 @@
                 listaT.appendChild(li);
             });
 
-            saldoTotal.innerText = `Saldo: R$ ${total.toFixed(2)}`;
-            localStorage.setItem('transacoes', JSON.stringify(transacoes));
+            saldoTotal.innerText = `Saldo Disponível: R$ ${saldo.toFixed(2)}`;
+            
+            // Cálculo da Reserva de Segurança comportamental (20% das receitas acumuladas)
+            let valorReserva = totalReceitas * 0.20;
+            reservaSeguranca.innerHTML = `🛡️ Meta de Reserva de Segurança (20%): <strong>R$ ${valorReserva.toFixed(2)}</strong>`;
+
+            localStorage.setItem('transacoes_v2', JSON.stringify(transacoes));
 
             // Atualizar Lista de Compras
             const listaC = document.getElementById('listaCompras');
@@ -173,7 +205,7 @@
                 `;
                 listaC.appendChild(li);
             });
-            localStorage.setItem('compras', JSON.stringify(compras));
+            localStorage.setItem('compras_v2', JSON.stringify(compras));
         }
 
         function adicionarTransacao() {
@@ -196,12 +228,10 @@
             atualizarApp();
         }
 
-        // Funções da Lista de Compras
         function adicionarItemCompra() {
             const item = document.getElementById('itemCompra').value;
-
             if (item.trim() === '') {
-                alert('Escreva o nome do item para a lista.');
+                alert('Escreva o nome do item para a lista de compras.');
                 return;
             }
 
@@ -218,6 +248,28 @@
         function removerCompra(index) {
             compras.splice(index, 1);
             atualizarApp();
+        }
+
+        function compararPrecos() {
+            const produto = document.getElementById('nomeProdutoComp').value;
+            const pA = parseFloat(document.getElementById('precoMercadoA').value);
+            const pB = parseFloat(document.getElementById('precoMercadoB').value);
+            const res = document.getElementById('resultadoComparacao');
+
+            if (!produto || isNaN(pA) || isNaN(pB)) {
+                res.innerText = 'Preencha o nome e os dois preços para comparar.';
+                return;
+            }
+
+            if (pA < pB) {
+                let economia = pB - pA;
+                res.innerText = `💡 O Mercado A é mais barato para "${produto}"! Economia de R$ ${economia.toFixed(2)}.`;
+            } else if (pB < pA) {
+                let economia = pA - pB;
+                res.innerText = `💡 O Mercado B é mais barato para "${produto}"! Economia de R$ ${economia.toFixed(2)}.`;
+            } else {
+                res.innerText = `⚖️ Os preços no Mercado A e B são exatamente iguais para "${produto}".`;
+            }
         }
 
         atualizarApp();
