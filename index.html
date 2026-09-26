@@ -135,12 +135,6 @@
             border-radius: 6px;
             cursor: pointer;
         }
-        .price-tag {
-            font-size: 0.85rem;
-            display: flex;
-            flex-direction: column;
-            text-align: right;
-        }
         .badge-up { color: #e74c3c; font-weight: bold; }
         .badge-down { color: #27ae60; font-weight: bold; }
         .badge-equal { color: #7f8c8d; }
@@ -338,18 +332,6 @@
                 <a id="linkAcessoEncarte" href="#" onclick="abrirEncarte(event)" class="secondary-btn" style="text-decoration: none;">🛒 Ver Encarte / Ofertas Online</a>
             </div>
         </div>
-
-        <!-- Comparador de Preços / Encarte -->
-        <div class="card">
-            <h3>📋 Comparador de Preços Unitários</h3>
-            <input type="text" id="inputNomeProduto" placeholder="Nome do Produto (ex: Arroz 5kg, Leite)">
-            <div style="display: flex; gap: 8px;">
-                <input type="number" id="inputPrecoAtual" placeholder="Preço Atual (R$)" step="0.01" style="margin:0;">
-                <input type="number" id="inputPrecoAnterior" placeholder="Preço Anterior (R$)" step="0.01" style="margin:0;">
-            </div>
-            <button class="primary-btn" style="margin-top: 12px;" onclick="adicionarItemEncarte()">Adicionar Produto</button>
-            <ul id="listaEncarte"></ul>
-        </div>
     </div>
 
     <!-- BARRA DE NAVEGAÇÃO INFERIOR -->
@@ -363,7 +345,6 @@
     </nav>
 
     <script>
-        let encarteItems = JSON.parse(localStorage.getItem('app_encarte_v16')) || [];
         let shoppingItems = JSON.parse(localStorage.getItem('app_shopping_v16')) || [];
         let historicoCompras = JSON.parse(localStorage.getItem('app_historico_compras_v16')) || [];
         let tetoCompras = parseFloat(localStorage.getItem('app_teto_compras_v16')) || 200;
@@ -638,83 +619,13 @@
         }
 
         function atualizarApp() {
-            localStorage.setItem('app_encarte_v16', JSON.stringify(encarteItems));
             localStorage.setItem('app_shopping_v16', JSON.stringify(shoppingItems));
             localStorage.setItem('app_historico_compras_v16', JSON.stringify(historicoCompras));
             localStorage.setItem('app_teto_compras_v16', tetoCompras);
 
-            renderizarEncarte();
             renderizarShopping();
             renderizarRelatorioMercados();
             atualizarInterfaceEncarteBusca();
-        }
-
-        function adicionarItemEncarte() {
-            const nome = document.getElementById('inputNomeProduto').value;
-            const precoAtual = parseFloat(document.getElementById('inputPrecoAtual').value);
-            const precoAnterior = parseFloat(document.getElementById('inputPrecoAnterior').value);
-
-            if(!nome || isNaN(precoAtual)) {
-                alert('Insira pelo menos o nome do produto e o preço atual.');
-                return;
-            }
-
-            encarteItems.push({ 
-                nome: nome, 
-                atual: precoAtual, 
-                anterior: isNaN(precoAnterior) ? precoAtual : precoAnterior 
-            });
-
-            document.getElementById('inputNomeProduto').value = '';
-            document.getElementById('inputPrecoAtual').value = '';
-            document.getElementById('inputPrecoAnterior').value = '';
-            
-            atualizarApp();
-        }
-
-        function renderizarEncarte() {
-            const listaE = document.getElementById('listaEncarte');
-            listaE.innerHTML = '';
-            
-            if(encarteItems.length === 0) {
-                listaE.innerHTML = '<li style="color: #95a5a6; text-align: center; display: block; padding: 15px;">Nenhum produto cadastrado no comparador.</li>';
-                return;
-            }
-
-            encarteItems.forEach((item, idx) => {
-                let diff = item.atual - item.anterior;
-                let badgeClass = 'badge-equal';
-                let txtDiff = '(=) Estável';
-
-                if (diff > 0) {
-                    badgeClass = 'badge-up';
-                    txtDiff = `📈 Subiu R$ ${diff.toFixed(2)}`;
-                } else if (diff < 0) {
-                    badgeClass = 'badge-down';
-                    txtDiff = `📉 Baixou R$ ${Math.abs(diff).toFixed(2)}`;
-                }
-
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <div>
-                        <strong>${item.nome}</strong>
-                        <div style="font-size: 0.8rem; color: #7f8c8d;">Anterior: R$ ${item.anterior.toFixed(2)}</div>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <div class="price-tag">
-                            <span style="font-weight: bold; color: #2c3e50;">R$ ${item.atual.toFixed(2)}</span>
-                            <span class="${badgeClass}">${txtDiff}</span>
-                        </div>
-                        <button class="delete-btn" onclick="removerItemEncarte(${idx})">X</button>
-                    </div>
-                `;
-                listaE.appendChild(li);
-            });
-        }
-
-        function removerItemEncarte(idx) {
-            encarteItems.splice(idx, 1);
-            atualizarApp();
         }
 
         atualizarApp();
