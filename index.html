@@ -100,6 +100,21 @@
         button.secondary-btn:hover {
             background-color: #2980b9;
         }
+        button.danger-outline-btn {
+            background: transparent;
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-weight: bold;
+            width: 100%;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-top: 12px;
+        }
+        button.danger-outline-btn:hover {
+            background: #fdf2f2;
+        }
         ul {
             list-style: none;
             margin-top: 10px;
@@ -295,6 +310,8 @@
 
             <h4 style="font-size: 0.95rem; color: #2c3e50; margin-top: 15px; margin-bottom: 5px;">Comparativo entre Redes:</h4>
             <ul id="listaRankingMercados" style="margin-top: 5px;"></ul>
+            
+            <button class="danger-outline-btn" onclick="limparHistoricoCompras()">🗑️ Limpar Histórico do Relatório</button>
         </div>
 
         <!-- Bloco para registrar compra concluída vinculada a um mercado -->
@@ -497,6 +514,13 @@
             document.getElementById('inputLocalCompra').value = '';
             alert(`Compra de R$ ${totalCompra.toFixed(2)} registada com sucesso no relatório do ${local}!`);
             atualizarApp();
+        }
+
+        function limparHistoricoCompras() {
+            if(confirm('Tem certeza que deseja apagar todo o histórico de compras e limpar o relatório?')) {
+                historicoCompras = [];
+                atualizarApp();
+            }
         }
 
         function renderizarShopping() {
