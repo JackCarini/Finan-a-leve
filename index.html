@@ -248,14 +248,6 @@
             font-size: 1.3rem;
             margin-bottom: 2px;
         }
-        .scanner-box {
-            border: 2px dashed #cbd5e1;
-            padding: 25px;
-            text-align: center;
-            border-radius: 12px;
-            background: #f8fafc;
-            margin-bottom: 15px;
-        }
     </style>
 </head>
 <body>
@@ -309,7 +301,7 @@
         <div class="card">
             <h3>📊 Relatório de Gastos com Alimentação</h3>
             <p style="font-size: 0.85rem; color: #64748b; margin-top: 4px; margin-bottom: 15px;">
-                Soma total das compras de mercado cadastradas no encarte + transações manuais.
+                Soma total das compras de mercado cadastradas no encarte.
             </p>
             <div class="report-box">
                 <div style="font-size: 0.85rem; color: #555; font-weight: 600;">TOTAL GASTO EM ALIMENTAÇÃO</div>
@@ -343,30 +335,6 @@
         </div>
     </div>
 
-    <!-- ABA 3: REGISTRAR (TRANSAÇÕES & QR CODE) -->
-    <div id="tab-registrar" class="tab-content">
-        <div class="card">
-            <h3>📸 Leitor de Nota Fiscal / QR Code</h3>
-            <div class="scanner-box">
-                <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 12px;">Capture o QR code da nota fiscal para importar os gastos automaticamente</p>
-                <input type="file" accept="image/*" capture="environment" id="fileScanner" style="display:none;" onchange="simularLeituraNota(this)">
-                <button class="primary-btn" onclick="document.getElementById('fileScanner').click()">Abrir Câmara / Ler QR</button>
-            </div>
-        </div>
-
-        <div class="card">
-            <h3>➕ Nova Transação</h3>
-            <input type="text" id="descTransacao" placeholder="Descrição (ex: Supermercado, Salário, Padaria)">
-            <input type="number" id="valTransacao" placeholder="Valor (positivo ganho, negativo gasto)" step="0.01">
-            <button class="primary-btn" onclick="registarTransacao()">Registar no Fluxo</button>
-        </div>
-        
-        <div class="card">
-            <h3>Histórico</h3>
-            <ul id="historicoTransacoes"></ul>
-        </div>
-    </div>
-
     <!-- BARRA DE NAVEGAÇÃO INFERIOR -->
     <nav class="bottom-nav">
         <button class="nav-item active" onclick="mudarAba('inicio', this)">
@@ -375,19 +343,15 @@
         <button class="nav-item" onclick="mudarAba('mercado', this)">
             <div>🛒</div>Mercado
         </button>
-        <button class="nav-item" onclick="mudarAba('registrar', this)">
-            <div>📷</div>Registrar
-        </button>
     </nav>
 
     <script>
-        let transacoes = JSON.parse(localStorage.getItem('app_transacoes_v12')) || [];
-        let encarteItems = JSON.parse(localStorage.getItem('app_encarte_v12')) || [];
-        let shoppingItems = JSON.parse(localStorage.getItem('app_shopping_v12')) || [];
-        let limiteMensal = parseFloat(localStorage.getItem('app_limite_v12')) || 500;
+        let encarteItems = JSON.parse(localStorage.getItem('app_encarte_v13')) || [];
+        let shoppingItems = JSON.parse(localStorage.getItem('app_shopping_v13')) || [];
+        let limiteMensal = parseFloat(localStorage.getItem('app_limite_v13')) || 500;
         
-        let nomeMercadoSalvo = localStorage.getItem('app_nome_mercado_v12') || '';
-        let cidadeMercadoSalva = localStorage.getItem('app_cidade_mercado_v12') || '';
+        let nomeMercadoSalvo = localStorage.getItem('app_nome_mercado_v13') || '';
+        let cidadeMercadoSalva = localStorage.getItem('app_cidade_mercado_v13') || '';
 
         function mudarAba(nomeAba, elBtn) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -401,7 +365,6 @@
                 document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
                 if(nomeAba === 'inicio') botoes[0].classList.add('active');
                 if(nomeAba === 'mercado') botoes[1].classList.add('active');
-                if(nomeAba === 'registrar') botoes[2].classList.add('active');
             }
             window.scrollTo(0, 0);
         }
@@ -418,8 +381,8 @@
             nomeMercadoSalvo = nomeM;
             cidadeMercadoSalva = cidadeM;
 
-            localStorage.setItem('app_nome_mercado_v12', nomeMercadoSalvo);
-            localStorage.setItem('app_cidade_mercado_v12', cidadeMercadoSalva);
+            localStorage.setItem('app_nome_mercado_v13', nomeMercadoSalvo);
+            localStorage.setItem('app_cidade_mercado_v13', cidadeMercadoSalva);
 
             atualizarInterfaceEncarteBusca();
             alert('Preferência de mercado guardada com sucesso!');
@@ -457,7 +420,6 @@
                 return;
             }
 
-            // Se o valor estiver em branco ou não for número, assume 0 para permitir cadastrar em casa
             const valorFinal = (isNaN(valorInput) || valorInput < 0) ? 0 : valorInput;
 
             shoppingItems.push({ nome: nome, valor: valorFinal, qtd: 1, checked: false });
@@ -534,82 +496,30 @@
         }
 
         function atualizarApp() {
-            let totalGastos = 0;
-            let totalAlimentacaoTransacoes = 0;
-
-            const histEl = document.getElementById('historicoTransacoes');
-            histEl.innerHTML = '';
-
-            transacoes.forEach((t, index) => {
-                if (t.valor < 0) {
-                    let valorAbs = Math.abs(t.valor);
-                    totalGastos += valorAbs;
-                    
-                    let descLower = t.descricao.toLowerCase();
-                    if(descLower.includes('mercado') || descLower.includes('supermercado') || descLower.includes('padaria') || descLower.includes('feira') || descLower.includes('comida')) {
-                        totalAlimentacaoTransacoes += valorAbs;
-                    }
-                }
-
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <span>${t.descricao}</span>
-                    <span>
-                        <strong style="color: ${t.valor >= 0 ? '#27ae60' : '#e74c3c'}">${t.valor >= 0 ? '+' : ''}R$ ${t.valor.toFixed(2)}</strong>
-                        <button class="delete-btn" onclick="removerTransacao(${index})" style="margin-left: 8px;">X</button>
-                    </span>
-                `;
-                histEl.appendChild(li);
-            });
-
             let totalEncarte = 0;
             encarteItems.forEach(item => {
                 totalEncarte += item.atual;
             });
 
-            let totalAlimentacaoGeral = totalEncarte + totalAlimentacaoTransacoes;
+            document.getElementById('txtTotalAlimentacaoConsolidado').innerText = `R$ ${totalEncarte.toFixed(2)}`;
+            document.getElementById('txtTotalMercadoResumo').innerText = `Total Alimentação: R$ ${totalEncarte.toFixed(2)}`;
 
-            document.getElementById('txtTotalAlimentacaoConsolidado').innerText = `R$ ${totalAlimentacaoGeral.toFixed(2)}`;
-            document.getElementById('txtTotalMercadoResumo').innerText = `Total Alimentação: R$ ${totalAlimentacaoGeral.toFixed(2)}`;
-
-            document.getElementById('txtGastoAtual').innerText = `R$ ${totalGastos.toFixed(0)}`;
+            document.getElementById('txtGastoAtual').innerText = `R$ ${totalEncarte.toFixed(0)}`;
             document.getElementById('txtLimiteTotal').innerText = `R$ ${limiteMensal}`;
             
-            let percentual = (totalGastos / limiteMensal) * 100;
+            let percentual = (totalEncarte / limiteMensal) * 100;
             if (percentual > 100) percentual = 100;
             const barra = document.getElementById('barraProgresso');
             barra.style.width = percentual + '%';
             barra.style.background = percentual > 85 ? '#e74c3c' : '#27ae60';
 
-            localStorage.setItem('app_transacoes_v12', JSON.stringify(transacoes));
-            localStorage.setItem('app_encarte_v12', JSON.stringify(encarteItems));
-            localStorage.setItem('app_shopping_v12', JSON.stringify(shoppingItems));
-            localStorage.setItem('app_limite_v12', limiteMensal);
+            localStorage.setItem('app_encarte_v13', JSON.stringify(encarteItems));
+            localStorage.setItem('app_shopping_v13', JSON.stringify(shoppingItems));
+            localStorage.setItem('app_limite_v13', limiteMensal);
 
             renderizarEncarte();
             renderizarShopping();
             atualizarInterfaceEncarteBusca();
-        }
-
-        function registarTransacao() {
-            const desc = document.getElementById('descTransacao').value;
-            const val = parseFloat(document.getElementById('valTransacao').value);
-
-            if(!desc || isNaN(val)) {
-                alert('Preencha a descrição e um valor válido.');
-                return;
-            }
-
-            transacoes.push({ descricao: desc, valor: val });
-            document.getElementById('descTransacao').value = '';
-            document.getElementById('valTransacao').value = '';
-            atualizarApp();
-            mudarAba('inicio');
-        }
-
-        function removerTransacao(index) {
-            transacoes.splice(index, 1);
-            atualizarApp();
         }
 
         function editarLimite() {
@@ -686,15 +596,6 @@
         function removerItemEncarte(idx) {
             encarteItems.splice(idx, 1);
             atualizarApp();
-        }
-
-        function simularLeituraNota(input) {
-            if(input.files && input.files[0]) {
-                alert('📷 Nota fiscal lida com sucesso! Adicionado registo de Supermercado ao histórico.');
-                transacoes.push({ descricao: 'Supermercado (Nota Fiscal)', valor: -150.00 });
-                atualizarApp();
-                mudarAba('inicio');
-            }
         }
 
         atualizarApp();
