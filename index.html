@@ -133,7 +133,7 @@
             border: 1px solid #c8e6d8;
             border-radius: 12px;
             padding: 15px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             text-align: center;
         }
         .report-value {
@@ -243,7 +243,6 @@
 
     <!-- ABA 1: INÍCIO -->
     <div id="tab-inicio" class="tab-content active">
-        <!-- Lista de Compras do Mercado com Teto de Gasto -->
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                 <h3 style="margin: 0;">🛒 Lista de Compras</h3>
@@ -280,17 +279,33 @@
 
     <!-- ABA 2: MERCADO & RELATÓRIO DE ALIMENTAÇÃO -->
     <div id="tab-mercado" class="tab-content">
+        <!-- Relatório Consolidado & Custo por Mercado -->
         <div class="card">
-            <h3>📊 Relatório de Gastos com Alimentação</h3>
+            <h3>📊 Relatório de Gastos por Estabelecimento</h3>
             <p style="font-size: 0.85rem; color: #64748b; margin-top: 4px; margin-bottom: 15px;">
-                Soma total das compras de mercado cadastradas no encarte.
+                Descubra qual mercado é mais barato ou mais caro com base nas suas compras cadastradas.
             </p>
+            
             <div class="report-box">
-                <div style="font-size: 0.85rem; color: #555; font-weight: 600;">TOTAL GASTO EM ALIMENTAÇÃO</div>
+                <div style="font-size: 0.85rem; color: #555; font-weight: 600;">TOTAL GERAL EM ALIMENTAÇÃO</div>
                 <div class="report-value" id="txtTotalAlimentacaoConsolidado">R$ 0,00</div>
             </div>
+
+            <h4 style="font-size: 0.95rem; color: #2c3e50; margin-top: 15px; margin-bottom: 5px;">Comparativo entre Redes:</h4>
+            <ul id="listaRankingMercados" style="margin-top: 5px;"></ul>
         </div>
 
+        <!-- Bloco para registrar compra concluída vinculada a um mercado -->
+        <div class="card">
+            <h3>💾 Fechar e Salvar Compra Atual</h3>
+            <p style="font-size: 0.85rem; color: #64748b; margin-top: 4px; margin-bottom: 10px;">
+                Informe em qual supermercado realizou esta compra para alimentar o relatório comparativo.
+            </p>
+            <input type="text" id="inputLocalCompra" placeholder="Nome do Supermercado (ex: Supermercado Vencedor)">
+            <button class="primary-btn" onclick="salvarHistoricoCompra()" style="margin-top: 4px;">Registar Compra no Relatório</button>
+        </div>
+
+        <!-- Bloco de Busca Inteligente de Encarte por Nome e Cidade -->
         <div class="card">
             <h3>🔍 Buscar Encarte do Supermercado</h3>
             <p style="font-size: 0.85rem; color: #64748b; margin-top: 4px; margin-bottom: 10px;">
@@ -305,8 +320,9 @@
             </div>
         </div>
 
+        <!-- Comparador de Preços / Encarte -->
         <div class="card">
-            <h3>📋 Comparador de Preços</h3>
+            <h3>📋 Comparador de Preços Unitários</h3>
             <input type="text" id="inputNomeProduto" placeholder="Nome do Produto (ex: Arroz 5kg, Leite)">
             <div style="display: flex; gap: 8px;">
                 <input type="number" id="inputPrecoAtual" placeholder="Preço Atual (R$)" step="0.01" style="margin:0;">
@@ -328,12 +344,13 @@
     </nav>
 
     <script>
-        let encarteItems = JSON.parse(localStorage.getItem('app_encarte_v15')) || [];
-        let shoppingItems = JSON.parse(localStorage.getItem('app_shopping_v15')) || [];
-        let tetoCompras = parseFloat(localStorage.getItem('app_teto_compras_v15')) || 200;
+        let encarteItems = JSON.parse(localStorage.getItem('app_encarte_v16')) || [];
+        let shoppingItems = JSON.parse(localStorage.getItem('app_shopping_v16')) || [];
+        let historicoCompras = JSON.parse(localStorage.getItem('app_historico_compras_v16')) || [];
+        let tetoCompras = parseFloat(localStorage.getItem('app_teto_compras_v16')) || 200;
         
-        let nomeMercadoSalvo = localStorage.getItem('app_nome_mercado_v15') || '';
-        let cidadeMercadoSalva = localStorage.getItem('app_cidade_mercado_v15') || '';
+        let nomeMercadoSalvo = localStorage.getItem('app_nome_mercado_v16') || '';
+        let cidadeMercadoSalva = localStorage.getItem('app_cidade_mercado_v16') || '';
 
         function mudarAba(nomeAba, elBtn) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -363,8 +380,8 @@
             nomeMercadoSalvo = nomeM;
             cidadeMercadoSalva = cidadeM;
 
-            localStorage.setItem('app_nome_mercado_v15', nomeMercadoSalvo);
-            localStorage.setItem('app_cidade_mercado_v15', cidadeMercadoSalva);
+            localStorage.setItem('app_nome_mercado_v16', nomeMercadoSalvo);
+            localStorage.setItem('app_cidade_mercado_v16', cidadeMercadoSalva);
 
             atualizarInterfaceEncarteBusca();
             alert('Preferência de mercado guardada com sucesso!');
@@ -447,6 +464,39 @@
             atualizarApp();
         }
 
+        function calcularTotalCarrinhoAtual() {
+            let total = 0;
+            shoppingItems.forEach(item => {
+                total += item.valor * item.qtd;
+            });
+            return total;
+        }
+
+        function salvarHistoricoCompra() {
+            const local = document.getElementById('inputLocalCompra').value.trim();
+            const totalCompra = calcularTotalCarrinhoAtual();
+
+            if(!local) {
+                alert('Informe o nome do supermercado onde realizou a compra.');
+                return;
+            }
+
+            if(totalCompra <= 0) {
+                alert('A lista de compras atual está com valor zerado.');
+                return;
+            }
+
+            historicoCompras.push({
+                mercado: local,
+                valor: totalCompra,
+                data: new Date().toLocaleDateString('pt-BR')
+            });
+
+            document.getElementById('inputLocalCompra').value = '';
+            alert(`Compra de R$ ${totalCompra.toFixed(2)} registada com sucesso no relatório do ${local}!`);
+            atualizarApp();
+        }
+
         function renderizarShopping() {
             const listaS = document.getElementById('listaShopping');
             listaS.innerHTML = '';
@@ -501,21 +551,77 @@
             }
         }
 
-        function atualizarApp() {
-            let totalEncarte = 0;
-            encarteItems.forEach(item => {
-                totalEncarte += item.atual;
+        function renderizarRelatorioMercados() {
+            const listaRanking = document.getElementById('listaRankingMercados');
+            listaRanking.innerHTML = '';
+
+            if (historicoCompras.length === 0) {
+                listaRanking.innerHTML = '<li style="color: #95a5a6; text-align: center; display: block; padding: 10px; font-size: 0.85rem;">Nenhuma compra registada ainda. Feche uma compra para ver o comparativo.</li>';
+                document.getElementById('txtTotalAlimentacaoConsolidado').innerText = 'R$ 0,00';
+                document.getElementById('txtTotalMercadoResumo').innerText = 'Total Alimentação: R$ 0,00';
+                return;
+            }
+
+            // Agrupa e soma os gastos por supermercado
+            let gastosPorMercado = {};
+            let totalGeralAlimentacao = 0;
+
+            historicoCompras.forEach(h => {
+                totalGeralAlimentacao += h.valor;
+                if (!gastosPorMercado[h.mercado]) {
+                    gastosPorMercado[h.mercado] = { total: 0, visitas: 0 };
+                }
+                gastosPorMercado[h.mercado].total += h.valor;
+                gastosPorMercado[h.mercado].visitas += 1;
             });
 
-            document.getElementById('txtTotalAlimentacaoConsolidado').innerText = `R$ ${totalEncarte.toFixed(2)}`;
-            document.getElementById('txtTotalMercadoResumo').innerText = `Total Alimentação: R$ ${totalEncarte.toFixed(2)}`;
+            document.getElementById('txtTotalAlimentacaoConsolidado').innerText = `R$ ${totalGeralAlimentacao.toFixed(2)}`;
+            document.getElementById('txtTotalMercadoResumo').innerText = `Total Alimentação: R$ ${totalGeralAlimentacao.toFixed(2)}`;
 
-            localStorage.setItem('app_encarte_v15', JSON.stringify(encarteItems));
-            localStorage.setItem('app_shopping_v15', JSON.stringify(shoppingItems));
-            localStorage.setItem('app_teto_compras_v15', tetoCompras);
+            // Ordena os mercados do mais barato para o mais caro com base na média por visita
+            let mercadosOrdenados = Object.keys(gastosPorMercado).map(nome => {
+                return {
+                    nome: nome,
+                    total: gastosPorMercado[nome].total,
+                    media: gastosPorMercado[nome].total / gastosPorMercado[nome].visitas,
+                    visitas: gastosPorMercado[nome].visitas
+                };
+            }).sort((a, b) => a.media - b.media);
+
+            mercadosOrdenados.forEach((m, index) => {
+                let badgeLabel = '';
+                if (index === 0 && mercadosOrdenados.length > 1) {
+                    badgeLabel = '<span class="badge-down">🏆 Mais Econômico</span>';
+                } else if (index === mercadosOrdenados.length - 1 && mercadosOrdenados.length > 1) {
+                    badgeLabel = '<span class="badge-up">⚠️ Mais Caro</span>';
+                } else {
+                    badgeLabel = '<span class="badge-equal">Regular</span>';
+                }
+
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div>
+                        <strong>${m.nome}</strong>
+                        <div style="font-size: 0.75rem; color: #7f8c8d;">${m.visitas} compra(s) realizada(s)</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: bold; color: #2c3e50;">R$ ${m.total.toFixed(2)}</div>
+                        <div>${badgeLabel}</div>
+                    </div>
+                `;
+                listaRanking.appendChild(li);
+            });
+        }
+
+        function atualizarApp() {
+            localStorage.setItem('app_encarte_v16', JSON.stringify(encarteItems));
+            localStorage.setItem('app_shopping_v16', JSON.stringify(shoppingItems));
+            localStorage.setItem('app_historico_compras_v16', JSON.stringify(historicoCompras));
+            localStorage.setItem('app_teto_compras_v16', tetoCompras);
 
             renderizarEncarte();
             renderizarShopping();
+            renderizarRelatorioMercados();
             atualizarInterfaceEncarteBusca();
         }
 
