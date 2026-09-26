@@ -36,37 +36,6 @@
         .tab-content.active {
             display: block;
         }
-        .balance-title {
-            font-size: 0.9rem;
-            color: #7f8c8d;
-            margin-bottom: 4px;
-        }
-        .balance-main {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 12px;
-        }
-        .limit-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.95rem;
-            margin-bottom: 8px;
-        }
-        .limit-bar-bg {
-            background: #dfe6e9;
-            border-radius: 10px;
-            height: 10px;
-            width: 100%;
-            overflow: hidden;
-        }
-        .limit-bar-fill {
-            background: #27ae60;
-            height: 100%;
-            width: 0%;
-            transition: width 0.3s ease;
-        }
         .market-card {
             display: flex;
             justify-content: space-between;
@@ -215,7 +184,6 @@
             margin: 0;
         }
 
-        /* Alerta dinâmico do teto de compras */
         .alert-box {
             margin-top: 12px;
             padding: 10px 14px;
@@ -275,18 +243,6 @@
 
     <!-- ABA 1: INÍCIO -->
     <div id="tab-inicio" class="tab-content active">
-        <div class="card">
-            <div class="balance-title">Olá, bem-vindo de volta!</div>
-            <div class="balance-main">Seu Balanço Atual</div>
-            <div class="limit-row">
-                <span>Limite de Gastos Mensal <span style="cursor:pointer;" onclick="editarLimite()">✏️</span></span>
-                <strong><span id="txtGastoAtual">R$ 0</span> / <span id="txtLimiteTotal">R$ 500</span></strong>
-            </div>
-            <div class="limit-bar-bg">
-                <div class="limit-bar-fill" id="barraProgresso"></div>
-            </div>
-        </div>
-
         <!-- Lista de Compras do Mercado com Teto de Gasto -->
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
@@ -310,7 +266,6 @@
                 <span id="txtTotalShopping" style="font-size: 1.2rem; font-weight: bold; color: #27ae60;">R$ 0,00</span>
             </div>
 
-            <!-- Caixa de Alerta Inteligente do Teto -->
             <div id="alertaTetoCompras" class="alert-box"></div>
         </div>
 
@@ -373,13 +328,12 @@
     </nav>
 
     <script>
-        let encarteItems = JSON.parse(localStorage.getItem('app_encarte_v14')) || [];
-        let shoppingItems = JSON.parse(localStorage.getItem('app_shopping_v14')) || [];
-        let limiteMensal = parseFloat(localStorage.getItem('app_limite_v14')) || 500;
-        let tetoCompras = parseFloat(localStorage.getItem('app_teto_compras_v14')) || 200;
+        let encarteItems = JSON.parse(localStorage.getItem('app_encarte_v15')) || [];
+        let shoppingItems = JSON.parse(localStorage.getItem('app_shopping_v15')) || [];
+        let tetoCompras = parseFloat(localStorage.getItem('app_teto_compras_v15')) || 200;
         
-        let nomeMercadoSalvo = localStorage.getItem('app_nome_mercado_v14') || '';
-        let cidadeMercadoSalva = localStorage.getItem('app_cidade_mercado_v14') || '';
+        let nomeMercadoSalvo = localStorage.getItem('app_nome_mercado_v15') || '';
+        let cidadeMercadoSalva = localStorage.getItem('app_cidade_mercado_v15') || '';
 
         function mudarAba(nomeAba, elBtn) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -409,8 +363,8 @@
             nomeMercadoSalvo = nomeM;
             cidadeMercadoSalva = cidadeM;
 
-            localStorage.setItem('app_nome_mercado_v14', nomeMercadoSalvo);
-            localStorage.setItem('app_cidade_mercado_v14', cidadeMercadoSalva);
+            localStorage.setItem('app_nome_mercado_v15', nomeMercadoSalvo);
+            localStorage.setItem('app_cidade_mercado_v15', cidadeMercadoSalva);
 
             atualizarInterfaceEncarteBusca();
             alert('Preferência de mercado guardada com sucesso!');
@@ -533,7 +487,6 @@
 
             document.getElementById('txtTotalShopping').innerText = `R$ ${totalCarrinho.toFixed(2)}`;
 
-            // Lógica do Alerta de Teto
             const alertaEl = document.getElementById('alertaTetoCompras');
             alertaEl.style.display = 'block';
 
@@ -557,35 +510,17 @@
             document.getElementById('txtTotalAlimentacaoConsolidado').innerText = `R$ ${totalEncarte.toFixed(2)}`;
             document.getElementById('txtTotalMercadoResumo').innerText = `Total Alimentação: R$ ${totalEncarte.toFixed(2)}`;
 
-            document.getElementById('txtGastoAtual').innerText = `R$ ${totalEncarte.toFixed(0)}`;
-            document.getElementById('txtLimiteTotal').innerText = `R$ ${limiteMensal}`;
-            
-            let percentual = (totalEncarte / limiteMensal) * 100;
-            if (percentual > 100) percentual = 100;
-            const barra = document.getElementById('barraProgresso');
-            barra.style.width = percentual + '%';
-            barra.style.background = percentual > 85 ? '#e74c3c' : '#27ae60';
-
-            localStorage.setItem('app_encarte_v14', JSON.stringify(encarteItems));
-            localStorage.setItem('app_shopping_v14', JSON.stringify(shoppingItems));
-            localStorage.setItem('app_limite_v14', limiteMensal);
-            localStorage.setItem('app_teto_compras_v14', tetoCompras);
+            localStorage.setItem('app_encarte_v15', JSON.stringify(encarteItems));
+            localStorage.setItem('app_shopping_v15', JSON.stringify(shoppingItems));
+            localStorage.setItem('app_teto_compras_v15', tetoCompras);
 
             renderizarEncarte();
             renderizarShopping();
             atualizarInterfaceEncarteBusca();
         }
 
-        function editarLimite() {
-            let novo = prompt('Defina o seu limite mensal de gastos (R$):', limiteMensal);
-            if(novo && !isNaN(novo)) {
-                limiteMensal = parseFloat(novo);
-                atualizarApp();
-            }
-        }
-
         function adicionarItemEncarte() {
-            const nome = document.getElementById('inputNomeProduto'].value;
+            const nome = document.getElementById('inputNomeProduto').value;
             const precoAtual = parseFloat(document.getElementById('inputPrecoAtual').value);
             const precoAnterior = parseFloat(document.getElementById('inputPrecoAnterior').value);
 
