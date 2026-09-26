@@ -278,12 +278,12 @@
         <div class="card">
             <h3>🛒 Lista de Compras do Mercado</h3>
             <p style="font-size: 0.85rem; color: #64748b; margin-top: 4px; margin-bottom: 12px;">
-                Planeie em casa, ajuste preços e quantidades, e marque os itens pegos no mercado.
+                Anote os itens em casa (preço opcional) e coloque os preços reais ao chegar ao mercado.
             </p>
             
             <div class="shopping-item-row">
                 <input type="text" id="inputShoppingNome" placeholder="Produto (ex: Arroz)" style="margin:0; flex: 2;">
-                <input type="number" id="inputShoppingValor" placeholder="Preço (R$)" step="0.01" style="margin:0; flex: 1;">
+                <input type="number" id="inputShoppingValor" placeholder="Preço opcional (R$)" step="0.01" style="margin:0; flex: 1;">
                 <button class="primary-btn" onclick="adicionarItemShopping()" style="margin:0; width: auto; padding: 12px 16px;">+</button>
             </div>
 
@@ -381,13 +381,13 @@
     </nav>
 
     <script>
-        let transacoes = JSON.parse(localStorage.getItem('app_transacoes_v11')) || [];
-        let encarteItems = JSON.parse(localStorage.getItem('app_encarte_v11')) || [];
-        let shoppingItems = JSON.parse(localStorage.getItem('app_shopping_v11')) || [];
-        let limiteMensal = parseFloat(localStorage.getItem('app_limite_v11')) || 500;
+        let transacoes = JSON.parse(localStorage.getItem('app_transacoes_v12')) || [];
+        let encarteItems = JSON.parse(localStorage.getItem('app_encarte_v12')) || [];
+        let shoppingItems = JSON.parse(localStorage.getItem('app_shopping_v12')) || [];
+        let limiteMensal = parseFloat(localStorage.getItem('app_limite_v12')) || 500;
         
-        let nomeMercadoSalvo = localStorage.getItem('app_nome_mercado_v11') || '';
-        let cidadeMercadoSalva = localStorage.getItem('app_cidade_mercado_v11') || '';
+        let nomeMercadoSalvo = localStorage.getItem('app_nome_mercado_v12') || '';
+        let cidadeMercadoSalva = localStorage.getItem('app_cidade_mercado_v12') || '';
 
         function mudarAba(nomeAba, elBtn) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -418,8 +418,8 @@
             nomeMercadoSalvo = nomeM;
             cidadeMercadoSalva = cidadeM;
 
-            localStorage.setItem('app_nome_mercado_v11', nomeMercadoSalvo);
-            localStorage.setItem('app_cidade_mercado_v11', cidadeMercadoSalva);
+            localStorage.setItem('app_nome_mercado_v12', nomeMercadoSalvo);
+            localStorage.setItem('app_cidade_mercado_v12', cidadeMercadoSalva);
 
             atualizarInterfaceEncarteBusca();
             alert('Preferência de mercado guardada com sucesso!');
@@ -450,14 +450,17 @@
 
         function adicionarItemShopping() {
             const nome = document.getElementById('inputShoppingNome').value.trim();
-            const valor = parseFloat(document.getElementById('inputShoppingValor').value);
+            const valorInput = parseFloat(document.getElementById('inputShoppingValor').value);
 
-            if(!nome || isNaN(valor)) {
-                alert('Insira o nome do produto e o preço estimado.');
+            if(!nome) {
+                alert('Insira pelo menos o nome do produto.');
                 return;
             }
 
-            shoppingItems.push({ nome: nome, valor: valor, qtd: 1, checked: false });
+            // Se o valor estiver em branco ou não for número, assume 0 para permitir cadastrar em casa
+            const valorFinal = (isNaN(valorInput) || valorInput < 0) ? 0 : valorInput;
+
+            shoppingItems.push({ nome: nome, valor: valorFinal, qtd: 1, checked: false });
             document.getElementById('inputShoppingNome').value = '';
             document.getElementById('inputShoppingValor').value = '';
             atualizarApp();
@@ -475,6 +478,9 @@
             let val = parseFloat(novoValor);
             if (!isNaN(val) && val >= 0) {
                 shoppingItems[index].valor = val;
+                atualizarApp();
+            } else {
+                shoppingItems[index].valor = 0;
                 atualizarApp();
             }
         }
@@ -503,7 +509,7 @@
 
             shoppingItems.forEach((item, idx) => {
                 let subtotal = item.valor * item.qtd;
-                totalCarrinho += subtotal; // Soma sempre, independentemente do check
+                totalCarrinho += subtotal;
 
                 const li = document.createElement('li');
                 li.innerHTML = `
@@ -575,10 +581,10 @@
             barra.style.width = percentual + '%';
             barra.style.background = percentual > 85 ? '#e74c3c' : '#27ae60';
 
-            localStorage.setItem('app_transacoes_v11', JSON.stringify(transacoes));
-            localStorage.setItem('app_encarte_v11', JSON.stringify(encarteItems));
-            localStorage.setItem('app_shopping_v11', JSON.stringify(shoppingItems));
-            localStorage.setItem('app_limite_v11', limiteMensal);
+            localStorage.setItem('app_transacoes_v12', JSON.stringify(transacoes));
+            localStorage.setItem('app_encarte_v12', JSON.stringify(encarteItems));
+            localStorage.setItem('app_shopping_v12', JSON.stringify(shoppingItems));
+            localStorage.setItem('app_limite_v12', limiteMensal);
 
             renderizarEncarte();
             renderizarShopping();
