@@ -174,6 +174,18 @@
             margin-top: 5px;
         }
 
+        /* Estilos específicos da Lista de Compras Rápida */
+        .shopping-item-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .item-checked {
+            text-decoration: line-through;
+            color: #95a5a6;
+        }
+
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -230,6 +242,27 @@
             </div>
             <div class="limit-bar-bg">
                 <div class="limit-bar-fill" id="barraProgresso"></div>
+            </div>
+        </div>
+
+        <!-- NOVO: Lista de Compras para o Mercado -->
+        <div class="card">
+            <h3>🛒 Lista de Compras do Mercado</h3>
+            <p style="font-size: 0.85rem; color: #64748b; margin-top: 4px; margin-bottom: 12px;">
+                Adicione os itens e preços para somar o total antes do caixa.
+            </p>
+            
+            <div class="shopping-item-row">
+                <input type="text" id="inputShoppingNome" placeholder="Produto (ex: Leite)" style="margin:0; flex: 2;">
+                <input type="number" id="inputShoppingValor" placeholder="Preço (R$)" step="0.01" style="margin:0; flex: 1;">
+                <button class="primary-btn" onclick="adicionarItemShopping()" style="margin:0; width: auto; padding: 12px 16px;">+</button>
+            </div>
+
+            <ul id="listaShopping" style="margin-top: 15px;"></ul>
+
+            <div style="margin-top: 15px; padding-top: 12px; border-top: 2px dashed #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                <strong style="color: #2c3e50; font-size: 1rem;">Total Previsto no Carrinho:</strong>
+                <span id="txtTotalShopping" style="font-size: 1.2rem; font-weight: bold; color: #27ae60;">R$ 0,00</span>
             </div>
         </div>
 
@@ -324,12 +357,13 @@
     </nav>
 
     <script>
-        let transacoes = JSON.parse(localStorage.getItem('app_transacoes_v8')) || [];
-        let encarteItems = JSON.parse(localStorage.getItem('app_encarte_v8')) || [];
-        let limiteMensal = parseFloat(localStorage.getItem('app_limite_v8')) || 500;
+        let transacoes = JSON.parse(localStorage.getItem('app_transacoes_v9')) || [];
+        let encarteItems = JSON.parse(localStorage.getItem('app_encarte_v9')) || [];
+        let shoppingItems = JSON.parse(localStorage.getItem('app_shopping_v9')) || [];
+        let limiteMensal = parseFloat(localStorage.getItem('app_limite_v9')) || 500;
         
-        let nomeMercadoSalvo = localStorage.getItem('app_nome_mercado_v8') || '';
-        let cidadeMercadoSalva = localStorage.getItem('app_cidade_mercado_v8') || '';
+        let nomeMercadoSalvo = localStorage.getItem('app_nome_mercado_v9') || '';
+        let cidadeMercadoSalva = localStorage.getItem('app_cidade_mercado_v9') || '';
 
         function mudarAba(nomeAba, elBtn) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -360,8 +394,8 @@
             nomeMercadoSalvo = nomeM;
             cidadeMercadoSalva = cidadeM;
 
-            localStorage.setItem('app_nome_mercado_v8', nomeMercadoSalvo);
-            localStorage.setItem('app_cidade_mercado_v8', cidadeMercadoSalva);
+            localStorage.setItem('app_nome_mercado_v9', nomeMercadoSalvo);
+            localStorage.setItem('app_cidade_mercado_v9', cidadeMercadoSalva);
 
             atualizarInterfaceEncarteBusca();
             alert('Preferência de mercado guardada com sucesso!');
@@ -388,6 +422,66 @@
                 const url = `https://www.google.com/search?q=${termoBusca}`;
                 window.open(url, '_system');
             }
+        }
+
+        // Funções da Lista de Compras Rápida
+        function adicionarItemShopping() {
+            const nome = document.getElementById('inputShoppingNome').value.trim();
+            const valor = parseFloat(document.getElementById('inputShoppingValor').value);
+
+            if(!nome || isNaN(valor)) {
+                alert('Insira o nome do produto e o preço estimado.');
+                return;
+            }
+
+            shoppingItems.push({ nome: nome, valor: valor, checked: false });
+            document.getElementById('inputShoppingNome').value = '';
+            document.getElementById('inputShoppingValor').value = '';
+            atualizarApp();
+        }
+
+        function alternarCheckShopping(index) {
+            shoppingItems[index].checked = !shoppingItems[index].checked;
+            atualizarApp();
+        }
+
+        function removerItemShopping(index) {
+            shoppingItems.splice(index, 1);
+            atualizarApp();
+        }
+
+        function renderizarShopping() {
+            const listaS = document.getElementById('listaShopping');
+            listaS.innerHTML = '';
+
+            if(shoppingItems.length === 0) {
+                listaS.innerHTML = '<li style="color: #95a5a6; text-align: center; display: block; padding: 10px; font-size: 0.9rem;">Sua lista de compras está vazia.</li>';
+                document.getElementById('txtTotalShopping').innerText = 'R$ 0,00';
+                return;
+            }
+
+            let totalCarrinho = 0;
+
+            shoppingItems.forEach((item, idx) => {
+                if(!item.checked) {
+                    totalCarrinho += item.valor;
+                }
+
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+                        <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="alternarCheckShopping(${idx})" style="width: 20px; height: 20px; margin: 0; cursor: pointer;">
+                        <span class="${item.checked ? 'item-checked' : ''}" style="font-weight: 500;">${item.nome}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="${item.checked ? 'item-checked' : ''}" style="font-weight: bold; color: #2c3e50;">R$ ${item.valor.toFixed(2)}</span>
+                        <button class="delete-btn" onclick="removerItemShopping(${idx})">X</button>
+                    </div>
+                `;
+                listaS.appendChild(li);
+            });
+
+            document.getElementById('txtTotalShopping').innerText = `R$ ${totalCarrinho.toFixed(2)}`;
         }
 
         function atualizarApp() {
@@ -438,11 +532,13 @@
             barra.style.width = percentual + '%';
             barra.style.background = percentual > 85 ? '#e74c3c' : '#27ae60';
 
-            localStorage.setItem('app_transacoes_v8', JSON.stringify(transacoes));
-            localStorage.setItem('app_encarte_v8', JSON.stringify(encarteItems));
-            localStorage.setItem('app_limite_v8', limiteMensal);
+            localStorage.setItem('app_transacoes_v9', JSON.stringify(transacoes));
+            localStorage.setItem('app_encarte_v9', JSON.stringify(encarteItems));
+            localStorage.setItem('app_shopping_v9', JSON.stringify(shoppingItems));
+            localStorage.setItem('app_limite_v9', limiteMensal);
 
             renderizarEncarte();
+            renderizarShopping();
             atualizarInterfaceEncarteBusca();
         }
 
@@ -517,7 +613,7 @@
                     txtDiff = `📈 Subiu R$ ${diff.toFixed(2)}`;
                 } else if (diff < 0) {
                     badgeClass = 'badge-down';
-                    txtDiff = `📉 Baixou R$ ${Math.abs(diff).toFixed(2)}`;
+                    txtDiff = `📉 Baixou R$ ${Math.abs(diff).getText ? '' : ''} R$ ${Math.abs(diff).toFixed(2)}`;
                 }
 
                 const li = document.createElement('li');
