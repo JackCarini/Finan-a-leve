@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>MINHA LISTA</title>
     <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="icon-carrinho.svg">
+    <link rel="apple-touch-icon" href="icon-carrinho.svg">
     <style>
         * {
             box-sizing: border-box;
@@ -562,7 +564,6 @@
                 return;
             }
 
-            // Agrupa e soma os gastos por supermercado
             let gastosPorMercado = {};
             let totalGeralAlimentacao = 0;
 
@@ -578,7 +579,6 @@
             document.getElementById('txtTotalAlimentacaoConsolidado').innerText = `R$ ${totalGeralAlimentacao.toFixed(2)}`;
             document.getElementById('txtTotalMercadoResumo').innerText = `Total Alimentação: R$ ${totalGeralAlimentacao.toFixed(2)}`;
 
-            // Ordena os mercados do mais barato para o mais caro com base na média por visita
             let mercadosOrdenados = Object.keys(gastosPorMercado).map(nome => {
                 return {
                     nome: nome,
