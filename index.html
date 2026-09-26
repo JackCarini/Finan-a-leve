@@ -174,7 +174,6 @@
             margin-top: 5px;
         }
 
-        /* Estilos específicos da Lista de Compras Rápida */
         .shopping-item-row {
             display: flex;
             align-items: center;
@@ -184,6 +183,26 @@
         .item-checked {
             text-decoration: line-through;
             color: #95a5a6;
+        }
+        .qty-control {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #f1f2f6;
+            padding: 4px 8px;
+            border-radius: 8px;
+        }
+        .qty-btn {
+            background: #fff;
+            border: 1px solid #dcdde1;
+            border-radius: 4px;
+            width: 24px;
+            height: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .bottom-nav {
@@ -245,16 +264,16 @@
             </div>
         </div>
 
-        <!-- NOVO: Lista de Compras para o Mercado -->
+        <!-- Lista de Compras do Mercado -->
         <div class="card">
             <h3>🛒 Lista de Compras do Mercado</h3>
             <p style="font-size: 0.85rem; color: #64748b; margin-top: 4px; margin-bottom: 12px;">
-                Adicione os itens e preços para somar o total antes do caixa.
+                Adicione itens, ajuste quantidades e marque os pegos para conferir no caixa.
             </p>
             
             <div class="shopping-item-row">
                 <input type="text" id="inputShoppingNome" placeholder="Produto (ex: Leite)" style="margin:0; flex: 2;">
-                <input type="number" id="inputShoppingValor" placeholder="Preço (R$)" step="0.01" style="margin:0; flex: 1;">
+                <input type="number" id="inputShoppingValor" placeholder="Preço un (R$)" step="0.01" style="margin:0; flex: 1;">
                 <button class="primary-btn" onclick="adicionarItemShopping()" style="margin:0; width: auto; padding: 12px 16px;">+</button>
             </div>
 
@@ -277,7 +296,6 @@
 
     <!-- ABA 2: MERCADO & RELATÓRIO DE ALIMENTAÇÃO -->
     <div id="tab-mercado" class="tab-content">
-        <!-- Relatório Consolidado -->
         <div class="card">
             <h3>📊 Relatório de Gastos com Alimentação</h3>
             <p style="font-size: 0.85rem; color: #64748b; margin-top: 4px; margin-bottom: 15px;">
@@ -289,7 +307,6 @@
             </div>
         </div>
 
-        <!-- Bloco de Busca Inteligente de Encarte por Nome e Cidade -->
         <div class="card">
             <h3>🔍 Buscar Encarte do Supermercado</h3>
             <p style="font-size: 0.85rem; color: #64748b; margin-top: 4px; margin-bottom: 10px;">
@@ -304,17 +321,14 @@
             </div>
         </div>
 
-        <!-- Comparador de Preços / Encarte -->
         <div class="card">
             <h3>📋 Comparador de Preços</h3>
-            
             <input type="text" id="inputNomeProduto" placeholder="Nome do Produto (ex: Arroz 5kg, Leite)">
             <div style="display: flex; gap: 8px;">
                 <input type="number" id="inputPrecoAtual" placeholder="Preço Atual (R$)" step="0.01" style="margin:0;">
                 <input type="number" id="inputPrecoAnterior" placeholder="Preço Anterior (R$)" step="0.01" style="margin:0;">
             </div>
             <button class="primary-btn" style="margin-top: 12px;" onclick="adicionarItemEncarte()">Adicionar Produto</button>
-            
             <ul id="listaEncarte"></ul>
         </div>
     </div>
@@ -357,13 +371,13 @@
     </nav>
 
     <script>
-        let transacoes = JSON.parse(localStorage.getItem('app_transacoes_v9')) || [];
-        let encarteItems = JSON.parse(localStorage.getItem('app_encarte_v9')) || [];
-        let shoppingItems = JSON.parse(localStorage.getItem('app_shopping_v9')) || [];
-        let limiteMensal = parseFloat(localStorage.getItem('app_limite_v9')) || 500;
+        let transacoes = JSON.parse(localStorage.getItem('app_transacoes_v10')) || [];
+        let encarteItems = JSON.parse(localStorage.getItem('app_encarte_v10')) || [];
+        let shoppingItems = JSON.parse(localStorage.getItem('app_shopping_v10')) || [];
+        let limiteMensal = parseFloat(localStorage.getItem('app_limite_v10')) || 500;
         
-        let nomeMercadoSalvo = localStorage.getItem('app_nome_mercado_v9') || '';
-        let cidadeMercadoSalva = localStorage.getItem('app_cidade_mercado_v9') || '';
+        let nomeMercadoSalvo = localStorage.getItem('app_nome_mercado_v10') || '';
+        let cidadeMercadoSalva = localStorage.getItem('app_cidade_mercado_v10') || '';
 
         function mudarAba(nomeAba, elBtn) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
@@ -394,8 +408,8 @@
             nomeMercadoSalvo = nomeM;
             cidadeMercadoSalva = cidadeM;
 
-            localStorage.setItem('app_nome_mercado_v9', nomeMercadoSalvo);
-            localStorage.setItem('app_cidade_mercado_v9', cidadeMercadoSalva);
+            localStorage.setItem('app_nome_mercado_v10', nomeMercadoSalvo);
+            localStorage.setItem('app_cidade_mercado_v10', cidadeMercadoSalva);
 
             atualizarInterfaceEncarteBusca();
             alert('Preferência de mercado guardada com sucesso!');
@@ -424,19 +438,26 @@
             }
         }
 
-        // Funções da Lista de Compras Rápida
         function adicionarItemShopping() {
             const nome = document.getElementById('inputShoppingNome').value.trim();
             const valor = parseFloat(document.getElementById('inputShoppingValor').value);
 
             if(!nome || isNaN(valor)) {
-                alert('Insira o nome do produto e o preço estimado.');
+                alert('Insira o nome do produto e o preço unitário.');
                 return;
             }
 
-            shoppingItems.push({ nome: nome, valor: valor, checked: false });
+            shoppingItems.push({ nome: nome, valor: valor, qtd: 1, checked: false });
             document.getElementById('inputShoppingNome').value = '';
             document.getElementById('inputShoppingValor').value = '';
+            atualizarApp();
+        }
+
+        function alterarQtdShopping(index, delta) {
+            shoppingItems[index].qtd += delta;
+            if (shoppingItems[index].qtd < 1) {
+                shoppingItems[index].qtd = 1;
+            }
             atualizarApp();
         }
 
@@ -463,18 +484,24 @@
             let totalCarrinho = 0;
 
             shoppingItems.forEach((item, idx) => {
-                if(!item.checked) {
-                    totalCarrinho += item.valor;
-                }
+                let subtotal = item.valor * item.qtd;
+                totalCarrinho += subtotal; // Soma sempre, independentemente de estar marcado
 
                 const li = document.createElement('li');
                 li.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
-                        <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="alternarCheckShopping(${idx})" style="width: 20px; height: 20px; margin: 0; cursor: pointer;">
-                        <span class="${item.checked ? 'item-checked' : ''}" style="font-weight: 500;">${item.nome}</span>
+                    <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
+                        <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="alternarCheckShopping(${idx})" style="width: 20px; height: 20px; margin: 0; cursor: pointer; flex-shrink: 0;">
+                        <span class="${item.checked ? 'item-checked' : ''}" style="font-weight: 500; word-break: break-word;">${item.nome}</span>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span class="${item.checked ? 'item-checked' : ''}" style="font-weight: bold; color: #2c3e50;">R$ ${item.valor.toFixed(2)}</span>
+                    <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
+                        <div class="qty-control">
+                            <button class="qty-btn" onclick="alterarQtdShopping(${idx}, -1)">-</button>
+                            <span style="font-weight: bold; min-width: 16px; text-align: center;">${item.qtd}</span>
+                            <button class="qty-btn" onclick="alterarQtdShopping(${idx}, 1)">+</button>
+                        </div>
+                        <div class="price-tag ${item.checked ? 'item-checked' : ''}">
+                            <span style="font-weight: bold; color: #2c3e50;">R$ ${subtotal.toFixed(2)}</span>
+                        </div>
                         <button class="delete-btn" onclick="removerItemShopping(${idx})">X</button>
                     </div>
                 `;
@@ -532,10 +559,10 @@
             barra.style.width = percentual + '%';
             barra.style.background = percentual > 85 ? '#e74c3c' : '#27ae60';
 
-            localStorage.setItem('app_transacoes_v9', JSON.stringify(transacoes));
-            localStorage.setItem('app_encarte_v9', JSON.stringify(encarteItems));
-            localStorage.setItem('app_shopping_v9', JSON.stringify(shoppingItems));
-            localStorage.setItem('app_limite_v9', limiteMensal);
+            localStorage.setItem('app_transacoes_v10', JSON.stringify(transacoes));
+            localStorage.setItem('app_encarte_v10', JSON.stringify(encarteItems));
+            localStorage.setItem('app_shopping_v10', JSON.stringify(shoppingItems));
+            localStorage.setItem('app_limite_v10', limiteMensal);
 
             renderizarEncarte();
             renderizarShopping();
@@ -613,7 +640,7 @@
                     txtDiff = `📈 Subiu R$ ${diff.toFixed(2)}`;
                 } else if (diff < 0) {
                     badgeClass = 'badge-down';
-                    txtDiff = `📉 Baixou R$ ${Math.abs(diff).getText ? '' : ''} R$ ${Math.abs(diff).toFixed(2)}`;
+                    txtDiff = `📉 Baixou R$ ${Math.abs(diff).toFixed(2)}`;
                 }
 
                 const li = document.createElement('li');
