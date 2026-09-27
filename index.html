@@ -102,11 +102,6 @@
             flex-grow: 1;
         }
 
-        .add-bar select {
-            margin: 0;
-            width: 140px;
-        }
-
         button.primary {
             background-color: var(--primary-color);
             color: white;
@@ -304,7 +299,7 @@
         <button class="theme-btn" onclick="toggleTheme()">🌓 Tema</button>
     </header>
 
-    <div id="toast" class="toast">Produto adicionado com sucesso! 🎉</div>
+    <div id="toast" class="toast">Produto adicionado e agrupado! 🎉</div>
 
     <!-- ABA 1: INÍCIO -->
     <div id="tab-inicio" class="tab-content active">
@@ -316,18 +311,10 @@
                     <button onclick="definirTeto()" style="width: auto; margin: 0; padding: 4px 8px; font-size: 0.8rem; background: none; border: 1px solid var(--info-color); color: var(--info-color); border-radius: 6px; cursor: pointer;">🎯 Definir Teto</button>
                 </div>
             </div>
-            <p class="muted" style="margin-top: 0; font-size: 0.85rem;">Acompanhe o total do carrinho em tempo real contra o seu teto planejado.</p>
+            <p class="muted" style="margin-top: 0; font-size: 0.85rem;">Itens agrupados automaticamente por setor para otimizar o seu percurso.</p>
 
             <div class="add-bar">
-                <input type="text" id="produtoNome" placeholder="Produto (ex: Arroz)" oninput="sugerirPreco()">
-                <select id="produtoCategoria">
-                    <option value="Mercearia">🛒 Mercearia</option>
-                    <option value="Hortifrúti">🍎 Hortifrúti</option>
-                    <option value="Açougue">🥩 Açougue</option>
-                    <option value="Limpeza">🧹 Limpeza</option>
-                    <option value="Higiene">🧴 Higiene</option>
-                    <option value="Outros">📦 Outros</option>
-                </select>
+                <input type="text" id="produtoNome" placeholder="Produto (ex: Arroz, Maçã, Leite...)" oninput="sugerirPreco()">
                 <button class="primary" onclick="adicionarProduto()" style="width: 45px; height: 40px; margin: 0; border-radius: 8px; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;">+</button>
             </div>
             <div id="sugestaoUltimoPreco" class="muted" style="font-size: 0.8rem; margin-top: 4px; min-height: 15px;"></div>
@@ -403,7 +390,6 @@
 </nav>
 
 <script>
-    // Camada de Persistência com Tratamento de Exceções Seguro (Storage Layer)
     function carregarStorage(chave, valorPadrao) {
         try {
             const item = localStorage.getItem(chave);
@@ -427,6 +413,54 @@
     let historicoCompras = carregarStorage('stokfy_historico_compras', []);
     let ultimoComparativo = carregarStorage('stokfy_ultimo_comparativo', null);
     let tetoGastos = parseFloat(localStorage.getItem('stokfy_teto')) || 0;
+
+    const dicionarioSetores = {
+        'maca': 'Hortifrúti', 'maçã': 'Hortifrúti', 'banana': 'Hortifrúti', 'tomate': 'Hortifrúti', 
+        'cebola': 'Hortifrúti', 'batata': 'Hortifrúti', 'alface': 'Hortifrúti', 'cenoura': 'Hortifrúti', 
+        'laranja': 'Hortifrúti', 'limao': 'Hortifrúti', 'limão': 'Hortifrúti', 'alho': 'Hortifrúti', 
+        'brocolis': 'Hortifrúti', 'brócolis': 'Hortifrúti', 'papaya': 'Hortifrúti', 'melancia': 'Hortifrúti', 
+        'abacate': 'Hortifrúti', 'morango': 'Hortifrúti', 'uva': 'Hortifrúti',
+
+        'carne': 'Açougue', 'frango': 'Açougue', 'peito de frango': 'Açougue', 'carne moida': 'Açougue', 
+        'carne moída': 'Açougue', 'bife': 'Açougue', 'linguica': 'Açougue', 'linguiça': 'Açougue', 
+        'porco': 'Açougue', 'costela': 'Açougue', 'alcatra': 'Açougue', 'patinho': 'Açougue', 
+        'file': 'Açougue', 'filé': 'Açougue', 'peixe': 'Açougue', 'camarao': 'Açougue', 'camarão': 'Açougue', 
+        'coracao': 'Açougue', 'coração': 'Açougue', 'presunto': 'Açougue', 'bacon': 'Açougue',
+
+        'detergente': 'Limpeza', 'sabao em po': 'Limpeza', 'sabão em pó': 'Limpeza', 'amaciante': 'Limpeza', 
+        'esponja': 'Limpeza', 'desinfetante': 'Limpeza', 'agua sanitaria': 'Limpeza', 'água sanitária': 'Limpeza', 
+        'multiuso': 'Limpeza', 'limpador': 'Limpeza', 'sacola': 'Limpeza', 'pano': 'Limpeza', 
+        'sabao em barra': 'Limpeza', 'sabão em barra': 'Limpeza', 'inseticida': 'Limpeza', 'papel toalha': 'Limpeza',
+
+        'papel higienico': 'Higiene', 'papel higiênico': 'Higiene', 'shampoo': 'Higiene', 'condicionador': 'Higiene', 
+        'pasta de dente': 'Higiene', 'creme dental': 'Higiene', 'escova de dente': 'Higiene', 'sabonete': 'Higiene', 
+        'desodorante': 'Higiene', 'gilete': 'Higiene', 'aparelho de barbear': 'Higiene', 'absorvente': 'Higiene', 
+        'cotonete': 'Higiene', 'algodao': 'Higiene', 'algodão': 'Higiene', 'fio dental': 'Higiene',
+
+        'arroz': 'Mercearia', 'feijao': 'Mercearia', 'feijão': 'Mercearia', 'oleo': 'Mercearia', 'óleo': 'Mercearia', 
+        'acucar': 'Mercearia', 'açúcar': 'Mercearia', 'sal': 'Mercearia', 'cafe': 'Mercearia', 'café': 'Mercearia', 
+        'leite': 'Mercearia', 'manteiga': 'Mercearia', 'queijo': 'Mercearia', 'requeijao': 'Mercearia', 'requeijão': 'Mercearia', 
+        'pao': 'Mercearia', 'pão': 'Mercearia', 'macarrao': 'Mercearia', 'macarrão': 'Mercearia', 'molho de tomate': 'Mercearia', 
+        'farinha': 'Mercearia', 'biscoito': 'Mercearia', 'bolacha': 'Mercearia', 'chocolate': 'Mercearia', 
+        'cerveja': 'Mercearia', 'refrigerante': 'Mercearia', 'agua': 'Mercearia', 'água': 'Mercearia', 'suco': 'Mercearia'
+    };
+
+    function identificarCategoriaAutomaticamente(nomeProduto) {
+        if (!nomeProduto) return 'Mercearia';
+        const nomeLimpo = nomeProduto.toLowerCase().trim();
+        
+        if (dicionarioSetores[nomeLimpo]) {
+            return dicionarioSetores[nomeLimpo];
+        }
+
+        for (let chave in dicionarioSetores) {
+            if (nomeLimpo.includes(chave)) {
+                return dicionarioSetores[chave];
+            }
+        }
+
+        return 'Mercearia';
+    }
 
     function toggleTheme() {
         const currentTheme = document.documentElement.getAttribute('data-theme');
@@ -473,7 +507,7 @@
         }
     }
 
-    function mostrarToast(msg = "Produto adicionado com sucesso! 🎉") {
+    function mostrarToast(msg = "Produto adicionado e agrupado! 🎉") {
         const t = document.getElementById('toast');
         t.innerText = msg;
         t.style.display = 'block';
@@ -482,17 +516,17 @@
 
     function adicionarProduto() {
         const nomeInput = document.getElementById('produtoNome');
-        const categoriaSelect = document.getElementById('produtoCategoria');
         const nome = nomeInput.value.trim();
-        const categoria = categoriaSelect.value;
         
         if(!nome) return alert('Preencha o nome do produto.');
+
+        const categoriaAutomatica = identificarCategoriaAutomaticamente(nome);
 
         const itemExistente = carrinho.find(item => item.nome.toLowerCase() === nome.toLowerCase());
         if(itemExistente) {
             itemExistente.qtd += 1;
         } else {
-            carrinho.push({ nome, categoria, preco: 0, qtd: 1, comprado: false });
+            carrinho.push({ nome, categoria: categoriaAutomatica, preco: 0, qtd: 1, comprado: false });
         }
 
         salvarStorage('stokfy_carrinho', carrinho);
@@ -516,7 +550,7 @@
 
         carrinho = ultimoComparativo.itens.map(i => ({
             nome: i.nome,
-            categoria: i.categoria || 'Mercearia',
+            categoria: i.categoria || identificarCategoriaAutomaticamente(i.nome),
             qtd: Number(i.qtd) || 1,
             preco: 0,
             comprado: false
@@ -593,7 +627,8 @@
             return;
         }
 
-        const categoriasOrdem = ['Mercearia', 'Hortifrúti', 'Açougue', 'Limpeza', 'Higiene', 'Outros'];
+        // Ordem lógica recomendada para o percurso dentro do mercado
+        const categoriasOrdem = ['Hortifrúti', 'Açougue', 'Mercearia', 'Limpeza', 'Higiene', 'Outros'];
         let htmlAgrupado = '';
 
         categoriasOrdem.forEach(cat => {
@@ -602,7 +637,7 @@
             if(itensCat.length > 0) {
                 htmlAgrupado += `
                     <div class="category-group">
-                        <div class="category-title">${cat}</div>
+                        <div class="category-title">📍 Setor: ${cat}</div>
                 `;
 
                 itensCat.forEach(item => {
