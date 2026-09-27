@@ -1,56 +1,78 @@
-const CACHE = "stokfy-pwa-v1";
+// Stokfy - Service Worker
+// Estratégia: Network First com cache versionado.
+// Sempre que houver internet, busca a versão mais recente do servidor.
+// Só usa o cache quando o dispositivo está offline.
+// Sempre que você publicar mudanças no index.html (ou em qualquer arquivo),
+// AUMENTE o número da versão abaixo (ex: 'stokfy-v2' -> 'stokfy-v3').
+// Isso força o navegador a descartar o cache antigo e assumir o controle
+// imediatamente, sem o usuário precisar limpar dados do app manualmente.
 
-const FILES_TO_CACHE = [
-  "./index.html",
-  "./manifest.json"
+const CACHE_VERSION = 'stokfy-v2';
+
+const ARQUIVOS_PARA_CACHE = [
+  './',
+  './index.html',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.jpg',
+  './icon-carrinho.svg'
 ];
 
-// Instalação do Service Worker e salvamento dos arquivos em cache local
-self.addEventListener("install", (evt) => {
-  evt.waitUntil(
-    caches.open(CACHE).then((cache) => {
-      return cache.addAll(FILES_TO_CACHE);
+// INSTALL: baixa e guarda uma cópia inicial dos arquivos essenciais
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_VERSION).then((cache) => {
+      return cache.addAll(ARQUIVOS_PARA_CACHE);
     })
   );
+  // Ativa o novo service worker imediatamente, sem esperar
+  // todas as abas antigas fecharem.
   self.skipWaiting();
 });
 
-// Ativação e limpeza de caches antigos
-self.addEventListener("activate", (evt) => {
-  evt.waitUntil(
-    caches.keys().then((keyList) => {
+// ACTIVATE: apaga qualquer cache de versões antigas
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((nomesCaches) => {
       return Promise.all(
-        keyList.map((key) => {
-          if (key !== CACHE) {
-            return caches.delete(key);
-          }
-        })
+        nomesCaches
+          .filter((nome) => nome !== CACHE_VERSION)
+          .map((nome) => caches.delete(nome))
       );
     })
   );
+  // Assume o controle de todas as páginas abertas imediatamente
   self.clients.claim();
 });
 
-// Interceptação de requisições: tenta buscar na rede, se falhar (offline), busca no cache
-self.addEventListener("fetch", (evt) => {
-  if (evt.request.method !== "GET") return;
+// FETCH: tenta a rede primeiro; só usa o cache se estiver offline
+self.addEventListener('fetch', (event) => {
+  // Ignora requisições que não sejam GET (ex: POST) para evitar erros de cache
+  if (event.request.method !== 'GET') return;
 
-  evt.respondWith(
-    fetch(evt.request)
-      .then((response) => {
-        // Se obteve sucesso na rede, atualiza o cache opcionalmente
-        return response;
+  event.respondWith(
+    fetch(event.request)
+      .then((respostaRede) => {
+        // Atualiza o cache com a resposta mais recente da rede
+        const copia = respostaRede.clone();
+        caches.open(CACHE_VERSION).then((cache) => {
+          cache.put(event.request, copia);
+        });
+        return respostaRede;
       })
       .catch(() => {
-        return caches.match(evt.request).then((cachedResponse) => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          // Fallback padrão para a página inicial caso a rota não seja encontrada
-          if (evt.request.mode === "navigate") {
-            return caches.match("./index.html");
-          }
+        // Sem internet: tenta servir a partir do cache
+        return caches.match(event.request).then((respostaCache) => {
+          return respostaCache || caches.match('./index.html');
         });
       })
   );
+});
+
+// Permite que a página force a ativação imediata de uma nova versão
+// (usado junto com o trecho de "aviso de atualização" no index.html)
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
