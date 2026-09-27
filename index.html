@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stokfy</title>
-    <link rel="manifest5" href="./manifest.json">
+    <link rel="manifest" href="./manifest.json">
     <style>
         :root {
             --bg-color: #f8f9fa;
@@ -14,6 +14,7 @@
             --border-color: #dee2e6;
             --primary-color: #27ae60;
             --danger-color: #e74c3c;
+            --info-color: #2980b9;
         }
 
         [data-theme="dark"] {
@@ -24,6 +25,7 @@
             --border-color: #333;
             --primary-color: #2ecc71;
             --danger-color: #e74c3c;
+            --info-color: #3498db;
         }
 
         body {
@@ -70,13 +72,18 @@
         input, button {
             width: 100%;
             padding: 10px;
-            margin-top: 8px;
-            margin-bottom: 12px;
+            margin-top: 6px;
+            margin-bottom: 10px;
             border-radius: 8px;
             border: 1px solid var(--border-color);
             box-sizing: border-box;
             background: var(--card-bg);
             color: var(--text-color);
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
         }
 
         button.primary {
@@ -87,15 +94,59 @@
             cursor: pointer;
         }
 
+        button.secondary {
+            background-color: var(--info-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            padding: 8px;
+        }
+
         .list-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 0;
+            padding: 10px 0;
             border-bottom: 1px solid var(--border-color);
         }
 
+        .item-info {
+            flex-grow: 1;
+        }
+
+        .qty-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0 10px;
+        }
+
+        .qty-controls button {
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            margin: 0;
+            font-weight: bold;
+            background: var(--border-color);
+            color: var(--text-color);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
         .muted { color: var(--text-muted); font-size: 0.9rem; }
+
+        .toast {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            text-align: center;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -106,13 +157,23 @@
         <button class="theme-btn" onclick="toggleTheme()">🌓 Tema</button>
     </header>
 
+    <div id="toast" class="toast">Produto adicionado com sucesso! 🎉</div>
+
     <div class="card">
         <h3>Adicionar à Lista</h3>
         <label class="muted">Produto</label>
         <input type="text" id="produtoNome" placeholder="Ex: Arroz" oninput="sugerirPreco()">
 
-        <label class="muted">Preço Unitário (R$)</label>
-        <input type="number" id="produtoPreco" placeholder="0.00" step="0.01">
+        <div class="row">
+            <div>
+                <label class="muted">Preço Unitário (R$)</label>
+                <input type="number" id="produtoPreco" placeholder="0.00" step="0.01">
+            </div>
+            <div>
+                <label class="muted">Quantidade</label>
+                <input type="number" id="produtoQtd" value="1" min="1">
+            </div>
+        </div>
 
         <button class="primary" onclick="adicionarProduto()">Adicionar Produto</button>
     </div>
@@ -120,7 +181,16 @@
     <div class="card">
         <h3>Carrinho Atual</h3>
         <div id="listaCarrinho">Sua lista está vazia.</div>
-        <p><strong>Total: </strong><span id="totalCarrinho">R$ 0,00</span></p>
+        <p style="margin-top: 15px;"><strong>Total: </strong><span id="totalCarrinho" style="float: right; color: var(--primary-color);">R$ 0,00</span></p>
+    </div>
+
+    <div class="card" style="padding: 12px;">
+        <h4 style="margin: 0 0 10px 0; font-size: 1rem;">Backup de Dados (Segurança)</h4>
+        <div class="row">
+            <button class="secondary" onclick="exportarDados()">Exportar Ficheiro</button>
+            <button class="secondary" onclick="document.getElementById('importFile').click()" style="background:#7f8c8d;">Importar Ficheiro</button>
+            <input type="file" id="importFile" style="display:none" onchange="importarDados(event)">
+        </div>
     </div>
 </div>
 
@@ -135,7 +205,6 @@
         localStorage.setItem('stokfy_theme', newTheme);
     }
 
-    // Carregar tema salvo
     if(localStorage.getItem('stokfy_theme') === 'dark') {
         document.documentElement.setAttribute('data-theme', 'dark');
     }
@@ -147,20 +216,53 @@
         }
     }
 
+    function mostrarToast() {
+        const t = document.getElementById('toast');
+        t.style.display = 'block';
+        setTimeout(() => { t.style.display = 'none'; }, 2000);
+    }
+
     function adicionarProduto() {
         const nome = document.getElementById('produtoNome').value.trim();
         const preco = parseFloat(document.getElementById('produtoPreco').value);
+        const qtd = parseInt(document.getElementById('produtoQtd').value) || 1;
 
         if(!nome || isNaN(preco)) return alert('Preencha o nome e o preço corretamente.');
 
-        carrinho.push({ nome, preco });
-        historicoPrecos[nome.toLowerCase()] = preco; // Salva no histórico inteligente
+        // Verifica se o produto já existe no carrinho para somar a quantidade
+        const itemExistente = carrinho.find(item => item.nome.toLowerCase() === nome.toLowerCase());
+        if(itemExistente) {
+            itemExistente.qtd += qtd;
+            itemExistente.preco = preco; // Atualiza com o preço mais recente
+        } else {
+            carrinho.push({ nome, preco, qtd });
+        }
+
+        historicoPrecos[nome.toLowerCase()] = preco;
 
         localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
         localStorage.setItem('stokfy_historico', JSON.stringify(historicoPrecos));
 
         document.getElementById('produtoNome').value = '';
         document.getElementById('produtoPreco').value = '';
+        document.getElementById('produtoQtd').value = '1';
+        
+        renderizarCarrinho();
+        mostrarToast();
+    }
+
+    function alterarQtd(index, delta) {
+        carrinho[index].qtd += delta;
+        if(carrinho[index].qtd <= 0) {
+            carrinho.splice(index, 1);
+        }
+        localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
+        renderizarCarrinho();
+    }
+
+    function removerItem(index) {
+        carrinho.splice(index, 1);
+        localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
         renderizarCarrinho();
     }
 
@@ -176,11 +278,20 @@
 
         container.innerHTML = '';
         carrinho.forEach((item, index) => {
-            total += item.preco;
+            const subtotal = item.preco * item.qtd;
+            total += subtotal;
             container.innerHTML += `
                 <div class="list-item">
-                    <span>${item.nome} - R$ ${item.preco.toFixed(2)}</span>
-                    <button onclick="removerItem(${index})" style="width:auto; padding:4px 8px; background:var(--danger-color); color:white; border:none; border-radius:4px;">X</button>
+                    <div class="item-info">
+                        <strong>${item.nome}</strong><br>
+                        <span class="muted">R$ ${item.preco.toFixed(2)} un | Subtotal: R$ ${subtotal.toFixed(2)}</span>
+                    </div>
+                    <div class="qty-controls">
+                        <button onclick="alterarQtd(${index}, -1)">-</button>
+                        <span>${item.qtd}</span>
+                        <button onclick="alterarQtd(${index}, 1)">+</button>
+                    </div>
+                    <button onclick="removerItem(${index})" style="width:auto; padding:6px 10px; background:var(--danger-color); color:white; border:none; border-radius:6px; cursor:pointer;">✕</button>
                 </div>
             `;
         });
@@ -188,10 +299,41 @@
         document.getElementById('totalCarrinho').innerText = `R$ ${total.toFixed(2)}`;
     }
 
-    function removerItem(index) {
-        carrinho.splice(index, 1);
-        localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
-        renderizarCarrinho();
+    function exportarDados() {
+        const dados = {
+            carrinho: carrinho,
+            historico: historicoPrecos
+        };
+        const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'stokfy_backup.json';
+        a.click();
+    }
+
+    function importarDados(event) {
+        const file = event.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const dados = JSON.parse(e.target.result);
+                if(dados.carrinho && dados.historico) {
+                    carrinho = dados.carrinho;
+                    historicoPrecos = dados.historico;
+                    localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
+                    localStorage.setItem('stokfy_historico', JSON.stringify(historicoPrecos));
+                    renderizarCarrinho();
+                    alert('Dados restaurados com sucesso!');
+                } else {
+                    alert('Ficheiro de backup inválido.');
+                }
+            } catch(err) {
+                alert('Erro ao ler o ficheiro.');
+            }
+        };
+        reader.readAsText(file);
     }
 
     renderizarCarrinho();
