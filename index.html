@@ -554,9 +554,38 @@
       renderizarHistorico();
       renderizarComparativoUltima();
 
-      // Forçar mudança para a aba comparativo corretamente
       const btnComparativo = document.querySelectorAll('.nav-item')[1];
       mudarAba('comparativo', btnComparativo);
+    }
+
+    function reutilizarUltima() {
+      if (!historicoCompras || historicoCompras.length === 0) {
+        alert('Não existem compras anteriores registadas no histórico para reutilizar.');
+        return;
+      }
+
+      const ultimaCompra = historicoCompras[0];
+      
+      if (!ultimaCompra.itens || ultimaCompra.itens.length === 0) {
+        alert('A última compra registada não contém itens.');
+        return;
+      }
+
+      produtos = ultimaCompra.itens.map(item => ({
+        id: Date.now() + Math.random(),
+        nome: item.nome,
+        setor: item.setor || determinarSetor(item.nome),
+        qtd: item.qtd || 1,
+        preco: item.preco || 0.0,
+        comprado: false
+      }));
+
+      salvarDados();
+      
+      const btnInicio = document.querySelectorAll('.nav-item')[0];
+      mudarAba('inicio', btnInicio);
+      
+      alert(`Lista do estabelecimento "${ultimaCompra.estabelecimento}" carregada com sucesso!`);
     }
 
     function renderizarComparativoUltima() {
@@ -665,8 +694,6 @@
         }
       });
     }
-
-    function reutilizarUltima() { alert('Funcionalidade de reutilizar última lista pronta para uso!'); }
   </script>
 </body>
 </html>
