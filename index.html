@@ -403,17 +403,36 @@
 </nav>
 
 <script>
-    let carrinho = JSON.parse(localStorage.getItem('stokfy_carrinho')) || [];
-    let historicoPrecos = JSON.parse(localStorage.getItem('stokfy_historico')) || {};
-    let historicoCompras = JSON.parse(localStorage.getItem('stokfy_historico_compras')) || [];
-    let ultimoComparativo = JSON.parse(localStorage.getItem('stokfy_ultimo_comparativo')) || null;
+    // Camada de Persistência com Tratamento de Exceções Seguro (Storage Layer)
+    function carregarStorage(chave, valorPadrao) {
+        try {
+            const item = localStorage.getItem(chave);
+            return item ? JSON.parse(item) : valorPadrao;
+        } catch (e) {
+            console.error(`Erro ao carregar chave ${chave} do LocalStorage:`, e);
+            return valorPadrao;
+        }
+    }
+
+    function salvarStorage(chave, valor) {
+        try {
+            localStorage.setItem(chave, JSON.stringify(valor));
+        } catch (e) {
+            console.error(`Erro ao salvar chave ${chave} no LocalStorage:`, e);
+        }
+    }
+
+    let carrinho = carregarStorage('stokfy_carrinho', []);
+    let historicoPrecos = carregarStorage('stokfy_historico', {});
+    let historicoCompras = carregarStorage('stokfy_historico_compras', []);
+    let ultimoComparativo = carregarStorage('stokfy_ultimo_comparativo', null);
     let tetoGastos = parseFloat(localStorage.getItem('stokfy_teto')) || 0;
 
     function toggleTheme() {
         const currentTheme = document.documentElement.getAttribute('data-theme');
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('stokfy_theme', newTheme);
+        salvarStorage('stokfy_theme', newTheme);
     }
 
     if(localStorage.getItem('stokfy_theme') === 'dark') {
@@ -438,8 +457,8 @@
     function definirTeto() {
         const novoTeto = prompt('Informe o valor do teto planejado (R$):', tetoGastos > 0 ? tetoGastos : '');
         if(novoTeto !== null) {
-            tetoGastos = parseFloat(novoTeto.replace(',', '.')) || 0;
-            localStorage.setItem('stokfy_teto', tetoGastos);
+            tetoGastos = parseFloat(String(novoTeto).replace(',', '.')) || 0;
+            salvarStorage('stokfy_teto', tetoGastos);
             atualizarTotalECarrossel();
         }
     }
@@ -447,8 +466,8 @@
     function sugerirPreco() {
         const nome = document.getElementById('produtoNome').value.trim().toLowerCase();
         const infoDiv = document.getElementById('sugestaoUltimoPreco');
-        if(nome && historicoPrecos[nome]) {
-            infoDiv.innerText = `💡 Último preço pago: R$ ${historicoPrecos[nome].toFixed(2)} (Não inserido automaticamente)`;
+        if(nome && historicoPrecos[nome] !== undefined) {
+            infoDiv.innerText = `💡 Último preço pago: R$ ${Number(historicoPrecos[nome]).toFixed(2)} (Não inserido automaticamente)`;
         } else {
             infoDiv.innerText = '';
         }
@@ -462,8 +481,11 @@
     }
 
     function adicionarProduto() {
-        const nome = document.getElementById('produtoNome').value.trim();
-        const categoria = document.getElementById('produtoCategoria').value;
+        const nomeInput = document.getElementById('produtoNome');
+        const categoriaSelect = document.getElementById('produtoCategoria');
+        const nome = nomeInput.value.trim();
+        const categoria = categoriaSelect.value;
+        
         if(!nome) return alert('Preencha o nome do produto.');
 
         const itemExistente = carrinho.find(item => item.nome.toLowerCase() === nome.toLowerCase());
@@ -473,9 +495,9 @@
             carrinho.push({ nome, categoria, preco: 0, qtd: 1, comprado: false });
         }
 
-        localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
+        salvarStorage('stokfy_carrinho', carrinho);
 
-        document.getElementById('produtoNome').value = '';
+        nomeInput.value = '';
         document.getElementById('sugestaoUltimoPreco').innerText = '';
         
         renderizarCarrinho();
@@ -495,68 +517,75 @@
         carrinho = ultimoComparativo.itens.map(i => ({
             nome: i.nome,
             categoria: i.categoria || 'Mercearia',
-            qtd: i.qtd,
+            qtd: Number(i.qtd) || 1,
             preco: 0,
             comprado: false
         }));
 
-        localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
+        salvarStorage('stokfy_carrinho', carrinho);
         renderizarCarrinho();
         mostrarToast('Última lista carregada com sucesso! 🔄');
     }
 
     function alterarQtd(indexOriginal, delta) {
+        if(!carrinho[indexOriginal]) return;
         carrinho[indexOriginal].qtd += delta;
         if(carrinho[indexOriginal].qtd <= 0) {
             carrinho[indexOriginal].qtd = 1;
         }
-        localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
+        salvarStorage('stokfy_carrinho', carrinho);
         renderizarCarrinho();
     }
 
     function atualizarPrecoUnitario(indexOriginal, valor) {
-        const preco = parseFloat(valor.replace(',', '.')) || 0;
-        carrinho[indexOriginal].preco = preco;
-        localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
+        if(!carrinho[indexOriginal]) return;
+        const precoLimpo = parseFloat(String(valor).replace(',', '.')) || 0;
+        carrinho[indexOriginal].preco = precoLimpo < 0 ? 0 : precoLimpo;
+        salvarStorage('stokfy_carrinho', carrinho);
         atualizarTotalECarrossel();
     }
 
     function alternarComprado(indexOriginal) {
+        if(!carrinho[indexOriginal]) return;
         carrinho[indexOriginal].comprado = !carrinho[indexOriginal].comprado;
-        localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
+        salvarStorage('stokfy_carrinho', carrinho);
         renderizarCarrinho();
     }
 
     function removerItem(indexOriginal) {
         carrinho.splice(indexOriginal, 1);
-        localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
+        salvarStorage('stokfy_carrinho', carrinho);
         renderizarCarrinho();
     }
 
     function atualizarTotalECarrossel() {
         const tetoBtnText = document.querySelector('button[onclick="definirTeto()"]');
-        if(tetoGastos > 0) {
+        if(tetoGastos > 0 && tetoBtnText) {
             tetoBtnText.innerText = `🎯 Definir Teto (R$ ${tetoGastos.toFixed(2)})`;
         }
 
         let total = 0;
         carrinho.forEach(item => {
-            total += (item.preco * item.qtd);
+            total += ((Number(item.preco) || 0) * (Number(item.qtd) || 0));
         });
 
-        document.getElementById('totalCarrinho').innerText = `R$ ${total.toFixed(2)}`;
+        const totalEl = document.getElementById('totalCarrinho');
+        if(totalEl) totalEl.innerText = `R$ ${total.toFixed(2)}`;
 
         const alertaContainer = document.getElementById('alertaTetoContainer');
-        if(tetoGastos > 0 && total > tetoGastos) {
-            const diferenca = total - tetoGastos;
-            alertaContainer.innerHTML = `<div class="alert-box">🚨 Atenção! O carrinho ultrapassou o teto em R$ ${diferenca.toFixed(2)}</div>`;
-        } else {
-            alertaContainer.innerHTML = '';
+        if(alertaContainer) {
+            if(tetoGastos > 0 && total > tetoGastos) {
+                const diferenca = total - tetoGastos;
+                alertaContainer.innerHTML = `<div class="alert-box">🚨 Atenção! O carrinho ultrapassou o teto em R$ ${diferenca.toFixed(2)}</div>`;
+            } else {
+                alertaContainer.innerHTML = '';
+            }
         }
     }
 
     function renderizarCarrinho() {
         const container = document.getElementById('listaCarrinho');
+        if(!container) return;
 
         if(carrinho.length === 0) {
             container.innerHTML = 'Sua lista está vazia.';
@@ -609,17 +638,19 @@
     }
 
     function registarCompraNoRelatorio() {
-        const nomeMercado = document.getElementById('nomeSupermercado').value.trim();
+        const inputMercado = document.getElementById('nomeSupermercado');
+        const nomeMercado = inputMercado ? inputMercado.value.trim() : '';
+        
         if(!nomeMercado) return alert('Informe o nome do estabelecimento.');
         if(carrinho.length === 0) return alert('O carrinho está vazio.');
 
-        const itensSemPreco = carrinho.filter(i => i.preco <= 0);
+        const itensSemPreco = carrinho.filter(i => (Number(i.preco) || 0) <= 0);
         if(itensSemPreco.length > 0) {
             const nomes = itensSemPreco.map(i => i.nome).join(', ');
             return alert(`Atenção: Os seguintes produtos estão com preço R$ 0,00 ou vazio: ${nomes}. Preencha todos os preços antes de registar a compra.`);
         }
 
-        let totalCompra = carrinho.reduce((acc, item) => acc + (item.preco * item.qtd), 0);
+        let totalCompra = carrinho.reduce((acc, item) => acc + ((Number(item.preco) || 0) * (Number(item.qtd) || 0)), 0);
         const dataAtualObj = new Date();
         const dataAtualStr = dataAtualObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
         const mesAnoStr = dataAtualObj.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
@@ -630,23 +661,24 @@
             mesAno: mesAnoStr,
             total: totalCompra
         });
-        localStorage.setItem('stokfy_historico_compras', JSON.stringify(historicoCompras));
+        salvarStorage('stokfy_historico_compras', historicoCompras);
 
         let itensComparativo = [];
         let totalAnteriorCalculado = 0;
 
         carrinho.forEach(item => {
             const nomeLower = item.nome.toLowerCase();
-            const precoAnterior = historicoPrecos[nomeLower] !== undefined ? historicoPrecos[nomeLower] : item.preco;
-            totalAnteriorCalculado += (precoAnterior * item.qtd);
+            const precoAtual = Number(item.preco) || 0;
+            const precoAnterior = historicoPrecos[nomeLower] !== undefined ? Number(historicoPrecos[nomeLower]) : precoAtual;
+            totalAnteriorCalculado += (precoAnterior * (Number(item.qtd) || 1));
 
             itensComparativo.push({
                 nome: item.nome,
                 categoria: item.categoria,
                 qtd: item.qtd,
-                precoAtual: item.preco,
+                precoAtual: precoAtual,
                 precoAnterior: precoAnterior,
-                dif: (item.preco - precoAnterior) * item.qtd
+                dif: (precoAtual - precoAnterior) * (Number(item.qtd) || 1)
             });
         });
 
@@ -656,16 +688,17 @@
             totalAnterior: totalAnteriorCalculado,
             itens: itensComparativo
         };
-        localStorage.setItem('stokfy_ultimo_comparativo', JSON.stringify(ultimoComparativo));
+        salvarStorage('stokfy_ultimo_comparativo', ultimoComparativo);
 
         carrinho.forEach(item => {
-            if(item.preco > 0) {
-                historicoPrecos[item.nome.toLowerCase()] = item.preco;
+            const precoAtual = Number(item.preco) || 0;
+            if(precoAtual > 0) {
+                historicoPrecos[item.nome.toLowerCase()] = precoAtual;
             }
         });
-        localStorage.setItem('stokfy_historico', JSON.stringify(historicoPrecos));
+        salvarStorage('stokfy_historico', historicoPrecos);
         
-        document.getElementById('nomeSupermercado').value = '';
+        if(inputMercado) inputMercado.value = '';
         carrinho = [];
         localStorage.removeItem('stokfy_carrinho');
         renderizarCarrinho();
@@ -676,6 +709,8 @@
 
     function renderizarComparativo() {
         const container = document.getElementById('conteudoComparativo');
+        if(!container) return;
+
         if(!ultimoComparativo) {
             container.innerHTML = 'Nenhum comparativo gerado ainda. Finalize uma compra na aba Início para ver os dados.';
             return;
@@ -694,8 +729,8 @@
         let html = `
             <div style="background: var(--bg-color); padding: 12px; border-radius: 8px; margin-bottom: 15px;">
                 <strong>Estabelecimento:</strong> ${ultimoComparativo.mercado}<br>
-                <strong>Total Atual:</strong> R$ ${ultimoComparativo.totalAtual.toFixed(2)}<br>
-                <strong>Custo Anterior Equivalente:</strong> R$ ${ultimoComparativo.totalAnterior.toFixed(2)}
+                <strong>Total Atual:</strong> R$ ${Number(ultimoComparativo.totalAtual).toFixed(2)}<br>
+                <strong>Custo Anterior Equivalente:</strong> R$ ${Number(ultimoComparativo.totalAnterior).toFixed(2)}
             </div>
             ${balancoTexto}
             <h4 style="margin-top: 20px;">Itens Lado a Lado:</h4>
@@ -703,10 +738,11 @@
 
         ultimoComparativo.itens.forEach(i => {
             let badgeDif = '';
+            const difVal = Number(i.dif) || 0;
             if(i.precoAtual > i.precoAnterior) {
-                badgeDif = `<span class="badge-cara">+R$ ${i.dif.toFixed(2)}</span>`;
+                badgeDif = `<span class="badge-cara">+R$ ${difVal.toFixed(2)}</span>`;
             } else if(i.precoAtual < i.precoAnterior) {
-                badgeDif = `<span class="badge-econ">-R$ ${Math.abs(i.dif).toFixed(2)}</span>`;
+                badgeDif = `<span class="badge-econ">-R$ ${Math.abs(difVal).toFixed(2)}</span>`;
             } else {
                 badgeDif = `<span class="muted">Estável</span>`;
             }
@@ -718,8 +754,8 @@
                         ${badgeDif}
                     </div>
                     <div style="width: 100%; display: flex; justify-content: space-between;" class="muted">
-                        <span>Anterior: R$ ${i.precoAnterior.toFixed(2)} un</span>
-                        <span>Atual: R$ ${i.precoAtual.toFixed(2)} un</span>
+                        <span>Anterior: R$ ${Number(i.precoAnterior).toFixed(2)} un</span>
+                        <span>Atual: R$ ${Number(i.precoAtual).toFixed(2)} un</span>
                     </div>
                 </div>
             `;
@@ -732,6 +768,7 @@
         const container = document.getElementById('listaRelatorioEstabelecimentos');
         const totalGeralEl = document.getElementById('totalGeralRelatorio');
         const estatisticasEl = document.getElementById('estatisticasResumo');
+        if(!container || !totalGeralEl || !estatisticasEl) return;
 
         if(historicoCompras.length === 0) {
             container.innerHTML = 'Nenhum registo de compra efetuado ainda.';
@@ -741,13 +778,13 @@
         }
 
         let totalGeral = 0;
-        historicoCompras.forEach(c => totalGeral += c.total);
+        historicoCompras.forEach(c => totalGeral += (Number(c.total) || 0));
         totalGeralEl.innerText = `R$ ${totalGeral.toFixed(2)}`;
 
         let gastosPorMes = {};
         historicoCompras.forEach(c => {
-            const mesFormatado = c.mesAno || 'Mês anterior';
-            gastosPorMes[mesFormatado] = (gastosPorMes[mesFormatado] || 0) + c.total;
+            const mesFormatado = c.mesAno && c.mesAno !== 'undefined' ? c.mesAno : 'Período anterior';
+            gastosPorMes[mesFormatado] = (gastosPorMes[mesFormatado] || 0) + (Number(c.total) || 0);
         });
 
         let statsHtml = `<div style="background: var(--bg-color); padding: 10px; border-radius: 8px; font-size: 0.85rem;"><strong>📊 Resumo Analítico:</strong><br>`;
@@ -763,7 +800,7 @@
                 <div class="list-item" style="flex-direction: column; align-items: flex-start; gap: 4px;">
                     <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
                         <strong>🛒 ${compra.mercado}</strong>
-                        <span style="font-weight: bold; color: var(--primary-color);">R$ ${compra.total.toFixed(2)}</span>
+                        <span style="font-weight: bold; color: var(--primary-color);">R$ ${Number(compra.total).toFixed(2)}</span>
                     </div>
                     <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
                         <span class="muted">📅 ${compra.data}</span>
@@ -777,7 +814,7 @@
     function removerCompraHistorico(index) {
         if(confirm('Deseja remover esta compra do histórico?')) {
             historicoCompras.splice(index, 1);
-            localStorage.setItem('stokfy_historico_compras', JSON.stringify(historicoCompras));
+            salvarStorage('stokfy_historico_compras', historicoCompras);
             renderizarRelatorio();
         }
     }
@@ -813,17 +850,19 @@
         reader.onload = function(e) {
             try {
                 const dados = JSON.parse(e.target.result);
-                if(dados.carrinho && dados.historico) {
-                    carrinho = dados.carrinho;
-                    historicoPrecos = dados.historico;
-                    historicoCompras = dados.compras || [];
+                if(dados && typeof dados === 'object') {
+                    carrinho = Array.isArray(dados.carrinho) ? dados.carrinho : [];
+                    historicoPrecos = dados.historico || {};
+                    historicoCompras = Array.isArray(dados.compras) ? dados.compras : [];
                     ultimoComparativo = dados.comparativo || null;
-                    tetoGastos = dados.teto || 0;
-                    localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
-                    localStorage.setItem('stokfy_historico', JSON.stringify(historicoPrecos));
-                    localStorage.setItem('stokfy_historico_compras', JSON.stringify(historicoCompras));
-                    localStorage.setItem('stokfy_ultimo_comparativo', JSON.stringify(ultimoComparativo));
+                    tetoGastos = Number(dados.teto) || 0;
+
+                    salvarStorage('stokfy_carrinho', carrinho);
+                    salvarStorage('stokfy_historico', historicoPrecos);
+                    salvarStorage('stokfy_historico_compras', historicoCompras);
+                    salvarStorage('stokfy_ultimo_comparativo', ultimoComparativo);
                     localStorage.setItem('stokfy_teto', tetoGastos);
+
                     renderizarCarrinho();
                     alert('Dados restaurados com sucesso!');
                 } else {
