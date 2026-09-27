@@ -15,6 +15,8 @@
             --primary-color: #27ae60;
             --danger-color: #e74c3c;
             --info-color: #2980b9;
+            --warning-bg: #f8d7da;
+            --warning-color: #721c24;
         }
 
         [data-theme="dark"] {
@@ -26,6 +28,8 @@
             --primary-color: #2ecc71;
             --danger-color: #e74c3c;
             --info-color: #3498db;
+            --warning-bg: #3c1f23;
+            --warning-color: #f8d7da;
         }
 
         body {
@@ -87,6 +91,16 @@
             gap: 10px;
         }
 
+        .add-bar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .add-bar input {
+            margin: 0;
+        }
+
         button.primary {
             background-color: var(--primary-color);
             color: white;
@@ -106,17 +120,19 @@
 
         .list-item {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
+            justify-content: space-between;
+            padding: 8px 0;
             border-bottom: 1px solid var(--border-color);
+            gap: 8px;
         }
 
         .item-left {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             flex-grow: 1;
+            min-width: 0;
         }
 
         .item-left input[type="checkbox"] {
@@ -124,67 +140,82 @@
             height: 20px;
             margin: 0;
             cursor: pointer;
+            flex-shrink: 0;
         }
 
-        .item-info {
-            flex-grow: 1;
+        .item-name {
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .item-info.checked {
+        .item-name.checked {
             text-decoration: line-through;
-            opacity: 0.6;
+            opacity: 0.5;
         }
 
         .qty-controls {
             display: flex;
             align-items: center;
-            gap: 6px;
-            margin: 0 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--card-bg);
+            overflow: hidden;
+            flex-shrink: 0;
         }
 
         .qty-controls button {
-            width: 32px;
+            width: 28px;
             height: 32px;
             padding: 0;
             margin: 0;
-            font-weight: bold;
             background: var(--border-color);
             color: var(--text-color);
             border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        /* Seletor de quantidade no formulário de adição */
-        .input-stepper {
-            display: flex;
-            align-items: center;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--card-bg);
-            margin-top: 6px;
-            margin-bottom: 10px;
-            overflow: hidden;
-        }
-
-        .input-stepper button {
-            width: 40px;
-            height: 40px;
-            margin: 0;
-            background: var(--border-color);
-            color: var(--text-color);
-            border: none;
-            font-size: 1.1rem;
             font-weight: bold;
             cursor: pointer;
             border-radius: 0;
         }
 
-        .input-stepper span {
-            flex-grow: 1;
+        .qty-controls span {
+            width: 28px;
             text-align: center;
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: bold;
+        }
+
+        .item-price-input {
+            width: 85px;
+            padding: 6px;
+            margin: 0;
+            text-align: right;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .delete-btn {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            margin: 0;
+            cursor: pointer;
+            flex-shrink: 0;
+            font-weight: bold;
+        }
+
+        .alert-box {
+            background-color: var(--warning-bg);
+            color: var(--warning-color);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 10px;
         }
 
         .muted { color: var(--text-muted); font-size: 0.9rem; }
@@ -250,32 +281,26 @@
     <!-- ABA 1: INÍCIO (Lista e Carrinho) -->
     <div id="tab-inicio" class="tab-content active">
         <div class="card">
-            <h3>Adicionar à Lista</h3>
-            <label class="muted">Produto</label>
-            <input type="text" id="produtoNome" placeholder="Ex: Arroz" oninput="sugerirPreco()">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h3 style="margin: 0;">🛒 Lista de Compras</h3>
+                <button onclick="definirTeto()" style="width: auto; margin: 0; padding: 4px 8px; font-size: 0.8rem; background: none; border: 1px solid var(--info-color); color: var(--info-color); border-radius: 6px; cursor: pointer;">🎯 Definir Teto</button>
+            </div>
+            <p class="muted" style="margin-top: 0; font-size: 0.85rem;">Acompanhe o total do carrinho em tempo real contra o seu teto planejado.</p>
 
-            <div class="row">
-                <div>
-                    <label class="muted">Preço Unitário (Opcional)</label>
-                    <input type="number" id="produtoPreco" placeholder="0.00" step="0.01">
-                </div>
-                <div>
-                    <label class="muted">Quantidade</label>
-                    <div class="input-stepper">
-                        <button type="button" onclick="mudarQtdForm(-1)">-</button>
-                        <span id="formQtd">1</span>
-                        <button type="button" onclick="mudarQtdForm(1)">+</button>
-                    </div>
-                </div>
+            <div class="add-bar">
+                <input type="text" id="produtoNome" placeholder="Produto (ex: Arroz)" oninput="sugerirPreco()">
+                <input type="number" id="produtoPreco" placeholder="Preço opc" step="0.01" style="width: 110px;">
+                <button class="primary" onclick="adicionarProduto()" style="width: 45px; height: 40px; margin: 0; border-radius: 8px; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;">+</button>
             </div>
 
-            <button class="primary" onclick="adicionarProduto()">Adicionar Produto</button>
-        </div>
+            <div id="listaCarrinho" style="margin-top: 15px;">Sua lista está vazia.</div>
 
-        <div class="card">
-            <h3>Carrinho Atual</h3>
-            <div id="listaCarrinho">Sua lista está vazia.</div>
-            <p style="margin-top: 15px;"><strong>Total: </strong><span id="totalCarrinho" style="float: right; color: var(--primary-color);">R$ 0,00</span></p>
+            <div style="border-top: 1px dashed var(--border-color); margin-top: 15px; padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <strong>Total Previsto no Carrinho:</strong>
+                <span id="totalCarrinho" style="font-size: 1.1rem; font-weight: bold; color: var(--primary-color);">R$ 0,00</span>
+            </div>
+
+            <div id="alertaTetoContainer"></div>
         </div>
 
         <div class="card">
@@ -328,7 +353,7 @@
     let carrinho = JSON.parse(localStorage.getItem('stokfy_carrinho')) || [];
     let historicoPrecos = JSON.parse(localStorage.getItem('stokfy_historico')) || {};
     let relatorioEstabelecimentos = JSON.parse(localStorage.getItem('stokfy_relatorio')) || {};
-    let qtdFormAtual = 1;
+    let tetoGastos = parseFloat(localStorage.getItem('stokfy_teto')) || 0;
 
     function toggleTheme() {
         const currentTheme = document.documentElement.getAttribute('data-theme');
@@ -353,10 +378,13 @@
         }
     }
 
-    function mudarQtdForm(delta) {
-        qtdFormAtual += delta;
-        if(qtdFormAtual < 1) qtdFormAtual = 1;
-        document.getElementById('formQtd').innerText = qtdFormAtual;
+    function definirTeto() {
+        const novoTeto = prompt('Informe o valor do teto planejado (R$):', tetoGastos > 0 ? tetoGastos : '');
+        if(novoTeto !== null) {
+            tetoGastos = parseFloat(novoTeto.replace(',', '.')) || 0;
+            localStorage.setItem('stokfy_teto', tetoGastos);
+            renderizarCarrinho();
+        }
     }
 
     function sugerirPreco() {
@@ -376,17 +404,16 @@
     function adicionarProduto() {
         const nome = document.getElementById('produtoNome').value.trim();
         const precoInput = document.getElementById('produtoPreco').value.trim();
-        const preco = precoInput === '' ? 0 : parseFloat(precoInput);
-        const qtd = qtdFormAtual;
+        const preco = precoInput === '' ? 0 : parseFloat(precoInput.replace(',', '.'));
 
         if(!nome) return alert('Preencha o nome do produto.');
 
         const itemExistente = carrinho.find(item => item.nome.toLowerCase() === nome.toLowerCase());
         if(itemExistente) {
-            itemExistente.qtd += qtd;
+            itemExistente.qtd += 1;
             if(preco > 0) itemExistente.preco = preco;
         } else {
-            carrinho.push({ nome, preco, qtd, comprado: false });
+            carrinho.push({ nome, preco: isNaN(preco) ? 0 : preco, qtd: 1, comprado: false });
         }
 
         if(preco > 0) {
@@ -398,8 +425,6 @@
 
         document.getElementById('produtoNome').value = '';
         document.getElementById('produtoPreco').value = '';
-        qtdFormAtual = 1;
-        document.getElementById('formQtd').innerText = '1';
         
         renderizarCarrinho();
         mostrarToast();
@@ -408,7 +433,18 @@
     function alterarQtd(index, delta) {
         carrinho[index].qtd += delta;
         if(carrinho[index].qtd <= 0) {
-            carrinho.splice(index, 1);
+            carrinho[index].qtd = 1;
+        }
+        localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
+        renderizarCarrinho();
+    }
+
+    function atualizarPrecoUnitario(index, valor) {
+        const preco = parseFloat(valor.replace(',', '.')) || 0;
+        carrinho[index].preco = preco;
+        if(preco > 0) {
+            historicoPrecos[carrinho[index].nome.toLowerCase()] = preco;
+            localStorage.setItem('stokfy_historico', JSON.stringify(historicoPrecos));
         }
         localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
         renderizarCarrinho();
@@ -428,11 +464,17 @@
 
     function renderizarCarrinho() {
         const container = document.getElementById('listaCarrinho');
+        const tetoBtnText = document.querySelector('button[onclick="definirTeto()"]');
+        if(tetoGastos > 0) {
+            tetoBtnText.innerText = `🎯 Definir Teto (R$ ${tetoGastos.toFixed(2)})`;
+        }
+
         let total = 0;
 
         if(carrinho.length === 0) {
             container.innerHTML = 'Sua lista está vazia.';
             document.getElementById('totalCarrinho').innerText = 'R$ 0,00';
+            document.getElementById('alertaTetoContainer').innerHTML = '';
             return;
         }
 
@@ -440,34 +482,37 @@
         carrinho.forEach((item, index) => {
             const subtotal = item.preco * item.qtd;
             total += subtotal;
-            
-            const infoPreco = item.preco > 0 
-                ? `R$ ${item.preco.toFixed(2)} un | Subtotal: R$ ${subtotal.toFixed(2)}`
-                : `Preço não definido`;
 
             const isCheckedClass = item.comprado ? 'checked' : '';
             const isCheckedAttr = item.comprado ? 'checked' : '';
+            const valorExibido = item.preco > 0 ? item.preco.toFixed(2) : '';
 
             container.innerHTML += `
                 <div class="list-item">
                     <div class="item-left">
                         <input type="checkbox" ${isCheckedAttr} onchange="alternarComprado(${index})">
-                        <div class="item-info ${isCheckedClass}">
-                            <strong>${item.nome}</strong><br>
-                            <span class="muted">${infoPreco}</span>
-                        </div>
+                        <span class="item-name ${isCheckedClass}">${item.nome}</span>
                     </div>
                     <div class="qty-controls">
-                        <button onclick="alterarQtd(${index}, -1)">-</button>
+                        <button type="button" onclick="alterarQtd(${index}, -1)">-</button>
                         <span>${item.qtd}</span>
-                        <button onclick="alterarQtd(${index}, 1)">+</button>
+                        <button type="button" onclick="alterarQtd(${index}, 1)">+</button>
                     </div>
-                    <button onclick="removerItem(${index})" style="width:auto; padding:6px 10px; background:var(--danger-color); color:white; border:none; border-radius:6px; cursor:pointer;">✕</button>
+                    <input type="number" step="0.01" class="item-price-input" placeholder="0,00" value="${valorExibido}" oninput="atualizarPrecoUnitario(${index}, this.value)">
+                    <button class="delete-btn" onclick="removerItem(${index})">✕</button>
                 </div>
             `;
         });
 
         document.getElementById('totalCarrinho').innerText = `R$ ${total.toFixed(2)}`;
+
+        const alertaContainer = document.getElementById('alertaTetoContainer');
+        if(tetoGastos > 0 && total > tetoGastos) {
+            const diferenca = total - tetoGastos;
+            alertaContainer.innerHTML = `<div class="alert-box">🚨 Atenção! O carrinho ultrapassou o teto em R$ ${diferenca.toFixed(2)}</div>`;
+        } else {
+            alertaContainer.innerHTML = '';
+        }
     }
 
     function registarCompraNoRelatorio() {
@@ -562,7 +607,8 @@
         const dados = {
             carrinho: carrinho,
             historico: historicoPrecos,
-            relatorio: relatorioEstabelecimentos
+            relatorio: relatorioEstabelecimentos,
+            teto: tetoGastos
         };
         const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -583,9 +629,11 @@
                     carrinho = dados.carrinho;
                     historicoPrecos = dados.historico;
                     relatorioEstabelecimentos = dados.relatorio || {};
+                    tetoGastos = dados.teto || 0;
                     localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
                     localStorage.setItem('stokfy_historico', JSON.stringify(historicoPrecos));
                     localStorage.setItem('stokfy_relatorio', JSON.stringify(relatorioEstabelecimentos));
+                    localStorage.setItem('stokfy_teto', tetoGastos);
                     renderizarCarrinho();
                     alert('Dados restaurados com sucesso!');
                 } else {
