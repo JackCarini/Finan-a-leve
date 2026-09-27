@@ -118,24 +118,23 @@
             padding: 8px;
         }
 
+        /* Novo layout do item em duas linhas para legibilidade perfeita */
         .list-item {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 8px 0;
+            flex-direction: column;
+            padding: 10px 0;
             border-bottom: 1px solid var(--border-color);
             gap: 8px;
         }
 
-        .item-left {
+        .item-top-row {
             display: flex;
             align-items: center;
-            gap: 8px;
-            flex-grow: 1;
-            min-width: 0;
+            gap: 10px;
+            width: 100%;
         }
 
-        .item-left input[type="checkbox"] {
+        .item-top-row input[type="checkbox"] {
             width: 20px;
             height: 20px;
             margin: 0;
@@ -144,15 +143,24 @@
         }
 
         .item-name {
-            font-weight: 500;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-weight: 600;
+            font-size: 1.05rem;
+            word-break: break-word;
+            flex-grow: 1;
         }
 
         .item-name.checked {
             text-decoration: line-through;
             opacity: 0.5;
+        }
+
+        .item-bottom-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: 100%;
+            padding-left: 30px; /* Alinhado após o checkbox */
         }
 
         .qty-controls {
@@ -166,8 +174,8 @@
         }
 
         .qty-controls button {
-            width: 28px;
-            height: 32px;
+            width: 32px;
+            height: 36px;
             padding: 0;
             margin: 0;
             background: var(--border-color);
@@ -179,18 +187,18 @@
         }
 
         .qty-controls span {
-            width: 28px;
+            width: 32px;
             text-align: center;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             font-weight: bold;
         }
 
         .item-price-input {
-            width: 85px;
-            padding: 6px;
+            width: 110px;
+            padding: 8px;
             margin: 0;
             text-align: right;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             flex-shrink: 0;
         }
 
@@ -199,8 +207,8 @@
             color: white;
             border: none;
             border-radius: 6px;
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             padding: 0;
             margin: 0;
             cursor: pointer;
@@ -246,7 +254,6 @@
             justify-content: space-around;
             padding: 10px 0;
             box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
-            z-index: 100;
         }
 
         .nav-item {
@@ -254,7 +261,7 @@
             border: none;
             color: var(--text-muted);
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
             width: auto;
             margin: 0;
             padding: 0;
@@ -267,15 +274,6 @@
 
         .badge-econ { background: #d4edda; color: #155724; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
         .badge-cara { background: #f8d7da; color: #721c24; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
-        
-        .comp-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid var(--border-color);
-            font-size: 0.9rem;
-        }
     </style>
 </head>
 <body>
@@ -298,10 +296,10 @@
             <p class="muted" style="margin-top: 0; font-size: 0.85rem;">Acompanhe o total do carrinho em tempo real contra o seu teto planejado.</p>
 
             <div class="add-bar">
-                <input type="text" id="produtoNome" placeholder="Produto (ex: Arroz)" oninput="sugerirPrecoVisual()">
-                <input type="number" id="produtoPreco" placeholder="Último: R$ 0,00" step="0.01" style="width: 130px;">
+                <input type="text" id="produtoNome" placeholder="Produto (ex: Arroz)" oninput="sugerirPreco()">
                 <button class="primary" onclick="adicionarProduto()" style="width: 45px; height: 40px; margin: 0; border-radius: 8px; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;">+</button>
             </div>
+            <div id="sugestaoUltimoPreco" class="muted" style="font-size: 0.8rem; margin-top: 4px; min-height: 15px;"></div>
 
             <div id="listaCarrinho" style="margin-top: 15px;">Sua lista está vazia.</div>
 
@@ -315,9 +313,9 @@
 
         <div class="card">
             <h3>Fechar e Salvar Compra Atual</h3>
-            <p class="muted" style="margin-top:0;">Informe em qual supermercado realizou esta compra para alimentar o relatório e gerar o comparativo.</p>
+            <p class="muted" style="margin-top:0;">Informe em qual supermercado realizou esta compra para alimentar o relatório.</p>
             <input type="text" id="nomeSupermercado" placeholder="Nome do Supermercado (ex: Supermercado X)">
-            <button class="primary" onclick="registarCompraNoRelatorio()" style="background-color: var(--info-color);">Registar Compra no Relatório</button>
+            <button class="primary" onclick="registarCompraNoRelatorio()" style="background-color: var(--info-color);">Registar Compra e Gerar Comparativo</button>
         </div>
 
         <div class="card" style="padding: 12px;">
@@ -330,18 +328,12 @@
         </div>
     </div>
 
-    <!-- ABA 2: COMPARATIVO (Última Compra vs Histórico) -->
+    <!-- ABA 2: COMPARATIVO -->
     <div id="tab-comparativo" class="tab-content">
         <div class="card">
             <h3>📈 Comparativo da Última Compra</h3>
-            <p class="muted">Veja o que encareceu ou barateou em relação ao seu histórico de preços anterior.</p>
-            
-            <div id="resumoComparativoBox" style="background: var(--bg-color); padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 15px;">
-                <span class="muted" style="font-size: 0.85rem; text-transform: uppercase;">Balanço Geral de Variação</span>
-                <h2 id="balancoGeralValor" style="margin: 5px 0 0 0;">R$ 0,00</h2>
-            </div>
-
-            <div id="listaComparativoItens">Nenhum registo de compra recente para comparar.</div>
+            <p class="muted">Veja o que economizou ou gastou a mais em relação aos preços anteriores.</p>
+            <div id="conteudoComparativo">Nenhum comparativo gerado ainda. Finalize uma compra para ver os dados.</div>
         </div>
     </div>
 
@@ -381,7 +373,7 @@
     let carrinho = JSON.parse(localStorage.getItem('stokfy_carrinho')) || [];
     let historicoPrecos = JSON.parse(localStorage.getItem('stokfy_historico')) || {};
     let relatorioEstabelecimentos = JSON.parse(localStorage.getItem('stokfy_relatorio')) || {};
-    let ultimoComparativo = JSON.parse(localStorage.getItem('stokfy_ultimo_comparativo')) || [];
+    let ultimoComparativo = JSON.parse(localStorage.getItem('stokfy_ultimo_comparativo')) || null;
     let tetoGastos = parseFloat(localStorage.getItem('stokfy_teto')) || 0;
 
     function toggleTheme() {
@@ -419,14 +411,13 @@
         }
     }
 
-    // Agora funciona apenas como sugestão visual (placeholder), sem preencher o input à força
-    function sugerirPrecoVisual() {
+    function sugerirPreco() {
         const nome = document.getElementById('produtoNome').value.trim().toLowerCase();
-        const inputPreco = document.getElementById('produtoPreco');
-        if(historicoPrecos[nome] !== undefined) {
-            inputPreco.placeholder = `Último: R$ ${historicoPrecos[nome].toFixed(2)}`;
+        const infoDiv = document.getElementById('sugestaoUltimoPreco');
+        if(nome && historicoPrecos[nome]) {
+            infoDiv.innerText = `💡 Último preço pago: R$ ${historicoPrecos[nome].toFixed(2)} (Não inserido automaticamente)`;
         } else {
-            inputPreco.placeholder = `Preço opcional`;
+            infoDiv.innerText = '';
         }
     }
 
@@ -439,24 +430,19 @@
 
     function adicionarProduto() {
         const nome = document.getElementById('produtoNome').value.trim();
-        const precoInput = document.getElementById('produtoPreco').value.trim();
-        const preco = precoInput === '' ? 0 : parseFloat(precoInput.replace(',', '.'));
-
         if(!nome) return alert('Preencha o nome do produto.');
 
         const itemExistente = carrinho.find(item => item.nome.toLowerCase() === nome.toLowerCase());
         if(itemExistente) {
             itemExistente.qtd += 1;
-            if(preco > 0) itemExistente.preco = preco;
         } else {
-            carrinho.push({ nome, preco: isNaN(preco) ? 0 : preco, qtd: 1, comprado: false });
+            carrinho.push({ nome, preco: 0, qtd: 1, comprado: false });
         }
 
         localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
 
         document.getElementById('produtoNome').value = '';
-        document.getElementById('produtoPreco').value = '';
-        document.getElementById('produtoPreco').placeholder = 'Preço opcional';
+        document.getElementById('sugestaoUltimoPreco').innerText = '';
         
         renderizarCarrinho();
         mostrarToast();
@@ -474,9 +460,13 @@
     function atualizarPrecoUnitario(index, valor) {
         const preco = parseFloat(valor.replace(',', '.')) || 0;
         carrinho[index].preco = preco;
-        localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
         
-        // Atualiza o total e alertas sem recriar o input, mantendo o foco ativo!
+        // Atualiza histórico apenas se houver preço válido
+        if(preco > 0) {
+            historicoPrecos[carrinho[index].nome.toLowerCase()] = preco;
+            localStorage.setItem('stokfy_historico', JSON.stringify(historicoPrecos));
+        }
+        localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
         atualizarTotalECarrossel();
     }
 
@@ -531,17 +521,19 @@
 
             container.innerHTML += `
                 <div class="list-item">
-                    <div class="item-left">
+                    <div class="item-top-row">
                         <input type="checkbox" ${isCheckedAttr} onchange="alternarComprado(${index})">
                         <span class="item-name ${isCheckedClass}">${item.nome}</span>
                     </div>
-                    <div class="qty-controls">
-                        <button type="button" onclick="alterarQtd(${index}, -1)">-</button>
-                        <span>${item.qtd}</span>
-                        <button type="button" onclick="alterarQtd(${index}, 1)">+</button>
+                    <div class="item-bottom-row">
+                        <div class="qty-controls">
+                            <button type="button" onclick="alterarQtd(${index}, -1)">-</button>
+                            <span>${item.qtd}</span>
+                            <button type="button" onclick="alterarQtd(${index}, 1)">+</button>
+                        </div>
+                        <input type="number" step="0.01" class="item-price-input" placeholder="0,00" value="${valorExibido}" oninput="atualizarPrecoUnitario(${index}, this.value)">
+                        <button class="delete-btn" onclick="removerItem(${index})">✕</button>
                     </div>
-                    <input type="number" step="0.01" class="item-price-input" placeholder="0,00" value="${valorExibido}" oninput="atualizarPrecoUnitario(${index}, this.value)">
-                    <button class="delete-btn" onclick="removerItem(${index})">✕</button>
                 </div>
             `;
         });
@@ -557,106 +549,102 @@
         let totalCompra = carrinho.reduce((acc, item) => acc + (item.preco * item.qtd), 0);
         if(totalCompra <= 0) return alert('Adicione preços aos itens do carrinho para registar no relatório.');
 
-        // Montar os dados para o comparativo antes de zerar o carrinho
-        let dadosComparativo = [];
+        // Salvar no relatório de estabelecimentos
+        if(!relatorioEstabelecimentos[nomeMercado]) {
+            relatorioEstabelecimentos[nomeMercado] = { total: 0, compras: 0 };
+        }
+        relatorioEstabelecimentos[nomeMercado].total += totalCompra;
+        relatorioEstabelecimentos[nomeMercado].compras += 1;
+        localStorage.setItem('stokfy_relatorio', JSON.stringify(relatorioEstabelecimentos));
+
+        // Gerar Comparativo com preços anteriores
+        let itensComparativo = [];
+        let totalAnteriorCalculado = 0;
+
         carrinho.forEach(item => {
-            const chave = item.nome.toLowerCase();
-            const precoAnterior = historicoPrecos[chave] !== undefined ? historicoPrecos[chave] : item.preco;
-            
-            dadosComparativo.push({
+            const nomeLower = item.nome.toLowerCase();
+            const precoAnterior = historicoPrecos[nomeLower] || item.preco; // Se não houver histórico, assume o atual
+            totalAnteriorCalculado += (precoAnterior * item.qtd);
+
+            itensComparativo.push({
                 nome: item.nome,
                 qtd: item.qtd,
                 precoAtual: item.preco,
                 precoAnterior: precoAnterior,
-                diferencaUnitario: item.preco - precoAnterior
+                dif: (item.preco - precoAnterior) * item.qtd
             });
-
-            // Atualiza o histórico geral com o novo preço pago
-            if(item.preco > 0) {
-                historicoPrecos[chave] = item.preco;
-            }
         });
 
-        ultimoComparativo = dadosComparativo;
-        localStorage.setItem('stokfy_historico', JSON.stringify(historicoPrecos));
+        ultimoComparativo = {
+            mercado: nomeMercado,
+            totalAtual: totalCompra,
+            totalAnterior: totalAnteriorCalculado,
+            itens: itensComparativo
+        };
         localStorage.setItem('stokfy_ultimo_comparativo', JSON.stringify(ultimoComparativo));
-
-        if(!relatorioEstabelecimentos[nomeMercado]) {
-            relatorioEstabelecimentos[nomeMercado] = { total: 0, compras: 0 };
-        }
-
-        relatorioEstabelecimentos[nomeMercado].total += totalCompra;
-        relatorioEstabelecimentos[nomeMercado].compras += 1;
-
-        localStorage.setItem('stokfy_relatorio', JSON.stringify(relatorioEstabelecimentos));
         
+        // Limpar carrinho
         document.getElementById('nomeSupermercado').value = '';
         carrinho = [];
         localStorage.removeItem('stokfy_carrinho');
         renderizarCarrinho();
+        
         mostrarToast("Compra registada e comparativo gerado! 📈");
+        mudarAba('comparativo', document.querySelectorAll('.nav-item')[1]);
     }
 
     function renderizarComparativo() {
-        const container = document.getElementById('listaComparativoItens');
-        const boxResumo = document.getElementById('resumoComparativoBox');
-        const balancoEl = document.getElementById('balancoGeralValor');
-
-        if(ultimoComparativo.length === 0) {
-            container.innerHTML = 'Nenhum registo de compra recente para comparar. Feche uma compra na aba Início.';
-            balancoEl.innerText = 'R$ 0,00';
-            boxResumo.style.background = 'var(--bg-color)';
+        const container = document.getElementById('conteudoComparativo');
+        if(!ultimoComparativo) {
+            container.innerHTML = 'Nenhum comparativo gerado ainda. Finalize uma compra na aba Início para ver os dados.';
             return;
         }
 
-        let totalDiferencaGeral = 0;
-        container.innerHTML = '';
+        const difTotal = ultimoComparativo.totalAtual - ultimoComparativo.totalAnterior;
+        let balancoTexto = '';
+        if(difTotal > 0) {
+            balancoTexto = `<div class="alert-box" style="background:#f8d7da; color:#721c24;">⚠️ Esta compra ficou <strong>R$ ${difTotal.toFixed(2)} mais cara</strong> em relação ao histórico anterior.</div>`;
+        } else if(difTotal < 0) {
+            balancoTexto = `<div class="alert-box" style="background:#d4edda; color:#155724;">🎉 Parabéns! Você economizou <strong>R$ ${Math.abs(difTotal).toFixed(2)}</strong> em relação ao histórico anterior.</div>`;
+        } else {
+            balancoTexto = `<div class="alert-box" style="background:#e2e3e5; color:#383d41;">⚖️ O total desta compra manteve-se idêntico ao histórico anterior.</div>`;
+        }
 
-        ultimoComparativo.forEach(item => {
-            const subtotalAtual = item.precoAtual * item.qtd;
-            const subtotalAnterior = item.precoAnterior * item.qtd;
-            const variacaoTotal = subtotalAtual - subtotalAnterior;
-            totalDiferencaGeral += variacaoTotal;
+        let html = `
+            <div style="background: var(--bg-color); padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+                <strong>Supermercado:</strong> ${ultimoComparativo.mercado}<br>
+                <strong>Total Atual:</strong> R$ ${ultimoComparativo.totalAtual.toFixed(2)}<br>
+                <strong>Total Base Anterior:</strong> R$ ${ultimoComparativo.totalAnterior.toFixed(2)}
+            </div>
+            ${balancoTexto}
+            <h4 style="margin-top: 20px;">Itens Lado a Lado:</h4>
+        `;
 
-            let badgeCor = 'muted';
-            let sinalTexto = '=';
-            if(item.precoAtual < item.precoAnterior) {
-                badgeCor = '#155724; background: #d4edda;';
-                sinalTexto = `📉 -R$ ${Math.abs(item.diferencaUnitario * item.qtd).toFixed(2)}`;
-            } else if(item.precoAtual > item.precoAnterior) {
-                badgeCor = '#721c24; background: #f8d7da;';
-                sinalTexto = `📈 +R$ ${Math.abs(item.diferencaUnitario * item.qtd).toFixed(2)}`;
+        ultimoComparativo.itens.forEach(i => {
+            let badgeDif = '';
+            if(i.precoAtual > i.precoAnterior) {
+                badgeDif = `<span class="badge-cara">+R$ ${i.dif.toFixed(2)}</span>`;
+            } else if(i.precoAtual < i.precoAnterior) {
+                badgeDif = `<span class="badge-econ">-R$ ${Math.abs(i.dif).toFixed(2)}</span>`;
             } else {
-                sinalTexto = '➡️ Igual';
+                badgeDif = `<span class="muted">Estável</span>`;
             }
 
-            container.innerHTML += `
-                <div class="comp-item" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+            html += `
+                <div class="list-item" style="flex-direction: column; align-items: flex-start; gap: 4px;">
                     <div style="width: 100%; display: flex; justify-content: space-between;">
-                        <strong>${item.nome} (${item.qtd}x)</strong>
-                        <span style="font-weight: bold;">R$ ${subtotalAtual.toFixed(2)}</span>
+                        <strong>${i.nome} (${i.qtd}x)</strong>
+                        ${badgeDif}
                     </div>
-                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem;">
-                        <span class="muted">Antigo: R$ ${item.precoAnterior.toFixed(2)} un | Atual: R$ ${item.precoAtual.toFixed(2)} un</span>
-                        <span style="padding: 2px 6px; border-radius: 4px; font-weight: bold; ${badgeCor}">${sinalTexto}</span>
+                    <div style="width: 100%; display: flex; justify-content: space-between;" class="muted">
+                        <span>Anterior: R$ ${i.precoAnterior.toFixed(2)} un</span>
+                        <span>Atual: R$ ${i.precoAtual.toFixed(2)} un</span>
                     </div>
                 </div>
             `;
         });
 
-        if(totalDiferencaGeral < 0) {
-            boxResumo.style.background = '#d4edda';
-            balancoEl.style.color = '#155724';
-            balancoEl.innerText = `Economizou R$ ${Math.abs(totalDiferencaGeral).toFixed(2)} 🎉`;
-        } else if(totalDiferencaGeral > 0) {
-            boxResumo.style.background = '#f8d7da';
-            balancoEl.style.color = '#721c24';
-            balancoEl.innerText = `Gastou a mais R$ ${totalDiferencaGeral.toFixed(2)} ⚠️`;
-        } else {
-            boxResumo.style.background = 'var(--bg-color)';
-            balancoEl.style.color = 'var(--text-color)';
-            balancoEl.innerText = `Sem alteração de preços`;
-        }
+        container.innerHTML = html;
     }
 
     function renderizarRelatorio() {
@@ -728,8 +716,8 @@
             carrinho: carrinho,
             historico: historicoPrecos,
             relatorio: relatorioEstabelecimentos,
-            teto: tetoGastos,
-            comparativo: ultimoComparativo
+            comparativo: ultimoComparativo,
+            teto: tetoGastos
         };
         const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -750,13 +738,13 @@
                     carrinho = dados.carrinho;
                     historicoPrecos = dados.historico;
                     relatorioEstabelecimentos = dados.relatorio || {};
+                    ultimoComparativo = dados.comparativo || null;
                     tetoGastos = dados.teto || 0;
-                    ultimoComparativo = dados.comparativo || [];
                     localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
                     localStorage.setItem('stokfy_historico', JSON.stringify(historicoPrecos));
                     localStorage.setItem('stokfy_relatorio', JSON.stringify(relatorioEstabelecimentos));
-                    localStorage.setItem('stokfy_teto', tetoGastos);
                     localStorage.setItem('stokfy_ultimo_comparativo', JSON.stringify(ultimoComparativo));
+                    localStorage.setItem('stokfy_teto', tetoGastos);
                     renderizarCarrinho();
                     alert('Dados restaurados com sucesso!');
                 } else {
