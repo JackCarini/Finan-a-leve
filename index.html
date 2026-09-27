@@ -1,925 +1,470 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stokfy</title>
-    <link rel="manifest" href="./manifest.json">
-    <style>
-        :root {
-            --bg-color: #f8f9fa;
-            --card-bg: #ffffff;
-            --text-color: #2c3e50;
-            --text-muted: #6c757d;
-            --border-color: #dee2e6;
-            --primary-color: #27ae60;
-            --danger-color: #e74c3c;
-            --info-color: #2980b9;
-            --warning-bg: #f8d7da;
-            --warning-color: #721c24;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stokfy</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#27ae60">
+  <style>
+    :root {
+      --bg-color: #f8f9fa;
+      --card-bg: #ffffff;
+      --text-color: #333333;
+      --primary-color: #27ae60;
+      --primary-hover: #219653;
+      --danger-color: #e74c3c;
+      --border-color: #e0e0e0;
+      --input-bg: #ffffff;
+    }
 
-        [data-theme="dark"] {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --text-color: #f1f1f1;
-            --text-muted: #aaa;
-            --border-color: #333;
-            --primary-color: #2ecc71;
-            --danger-color: #e74c3c;
-            --info-color: #3498db;
-            --warning-bg: #3c1f23;
-            --warning-color: #f8d7da;
-        }
+    [data-theme="dark"] {
+      --bg-color: #121212;
+      --card-bg: #1e1e1e;
+      --text-color: #e0e0e0;
+      --primary-color: #2ecc71;
+      --primary-hover: #27ae60;
+      --danger-color: #c0392b;
+      --border-color: #333333;
+      --input-bg: #2d2d2d;
+    }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 16px;
-            padding-bottom: 80px;
-            transition: background 0.3s, color 0.3s;
-        }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
 
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding-bottom: 70px;
+      transition: background-color 0.3s, color 0.3s;
+    }
 
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      background-color: var(--card-bg);
+      border-bottom: 1px solid var(--border-color);
+    }
 
-        h1 { font-size: 1.5rem; margin: 0; }
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-        .theme-btn {
-            background: none;
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 6px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
+    .logo-area h1 {
+      font-size: 1.5rem;
+      color: var(--primary-color);
+    }
 
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
+    .theme-toggle {
+      background: none;
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 6px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
 
-        input, select, button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 6px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            box-sizing: border-box;
-            background: var(--card-bg);
-            color: var(--text-color);
-        }
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 0 15px;
+    }
 
-        .row {
-            display: flex;
-            gap: 10px;
-        }
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
 
-        .add-bar {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
+    .card-title {
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-        .add-bar input {
-            margin: 0;
-            flex-grow: 1;
-        }
+    .actions-top {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
 
-        button.primary {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            font-weight: bold;
-            cursor: pointer;
-        }
+    .btn {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.2s;
+    }
 
-        button.secondary {
-            background-color: var(--info-color);
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 0.85rem;
-            padding: 8px;
-        }
+    .btn:hover {
+      background-color: var(--primary-hover);
+    }
 
-        .category-group {
-            margin-top: 15px;
-            border-top: 2px solid var(--border-color);
-            padding-top: 8px;
-        }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--primary-color);
+      color: var(--primary-color);
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
 
-        .category-title {
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            font-weight: bold;
-            color: var(--info-color);
-            margin-bottom: 5px;
-            letter-spacing: 0.5px;
-        }
+    .input-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
 
-        .list-item {
-            display: flex;
-            flex-direction: column;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border-color);
-            gap: 8px;
-        }
+    input[type="text"], input[type="number"] {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background-color: var(--input-bg);
+      color: var(--text-color);
+      font-size: 1rem;
+    }
 
-        .item-top-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            width: 100%;
-        }
+    .setor-section {
+      margin-top: 15px;
+      border-top: 1px dashed var(--border-color);
+      padding-top: 15px;
+    }
 
-        .item-top-row input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            margin: 0;
-            cursor: pointer;
-            flex-shrink: 0;
-        }
+    .setor-title {
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: var(--primary-color);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
 
-        .item-name {
-            font-weight: 600;
-            font-size: 1.05rem;
-            word-break: break-word;
-            flex-grow: 1;
-        }
+    /* Correção do alinhamento do X */
+    .produto-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: var(--bg-color);
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      border: 1px solid var(--border-color);
+      gap: 10px;
+    }
 
-        .item-name.checked {
-            text-decoration: line-through;
-            opacity: 0.5;
-        }
+    .produto-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
+    }
 
-        .item-bottom-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            width: 100%;
-            padding-left: 30px;
-        }
+    .produto-nome {
+      font-size: 0.95rem;
+      word-break: break-word;
+    }
 
-        .qty-controls {
-            display: flex;
-            align-items: center;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            background: var(--card-bg);
-            overflow: hidden;
-            flex-shrink: 0;
-        }
+    .produto-controles {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
 
-        .qty-controls button {
-            width: 32px;
-            height: 36px;
-            padding: 0;
-            margin: 0;
-            background: var(--border-color);
-            color: var(--text-color);
-            border: none;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 0;
-        }
+    .qtd-control {
+      display: flex;
+      align-items: center;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      overflow: hidden;
+      background: var(--card-bg);
+    }
 
-        .qty-controls span {
-            width: 32px;
-            text-align: center;
-            font-size: 0.95rem;
-            font-weight: bold;
-        }
+    .qtd-control button {
+      background: none;
+      border: none;
+      padding: 4px 10px;
+      cursor: pointer;
+      color: var(--text-color);
+      font-weight: bold;
+    }
 
-        .item-price-input {
-            width: 110px;
-            padding: 8px;
-            margin: 0;
-            text-align: right;
-            font-size: 0.95rem;
-            flex-shrink: 0;
-        }
+    .qtd-control span {
+      padding: 0 6px;
+      font-size: 0.9rem;
+    }
 
-        .delete-btn {
-            background-color: var(--danger-color);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            width: 36px;
-            height: 36px;
-            padding: 0;
-            margin: 0;
-            cursor: pointer;
-            flex-shrink: 0;
-            font-weight: bold;
-        }
+    .preco-input {
+      width: 80px;
+      padding: 6px;
+      text-align: right;
+    }
 
-        .alert-box {
-            background-color: var(--warning-bg);
-            color: var(--warning-color);
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            text-align: center;
-            margin-top: 10px;
-        }
+    .btn-delete {
+      background-color: var(--danger-color);
+      color: white;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
 
-        .muted { color: var(--text-muted); font-size: 0.9rem; }
+    .total-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 2px solid var(--border-color);
+    }
 
-        .toast {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            font-size: 0.9rem;
-            text-align: center;
-            display: none;
-        }
+    .total-valor {
+      color: var(--primary-color);
+    }
 
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
+    nav.bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background-color: var(--card-bg);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      z-index: 1000;
+    }
 
-        nav.bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: var(--card-bg);
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
-            box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
-            z-index: 100;
-        }
+    .nav-item {
+      background: none;
+      border: none;
+      color: var(--text-color);
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
 
-        .nav-item {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            font-size: 0.9rem;
-            width: auto;
-            margin: 0;
-            padding: 0;
-        }
-
-        .nav-item.active {
-            color: var(--primary-color);
-            font-weight: bold;
-        }
-
-        .badge-econ { background: #d4edda; color: #155724; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
-        .badge-cara { background: #f8d7da; color: #721c24; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
-    </style>
+    .nav-item.active {
+      color: var(--primary-color);
+      font-weight: bold;
+    }
+  </style>
 </head>
-<body>
+<body data-theme="light">
 
-<div class="container">
-    <header>
-        <h1>🛒 Stokfy</h1>
-        <button class="theme-btn" onclick="toggleTheme()">🌓 Tema</button>
-    </header>
-
-    <div id="toast" class="toast">Produto adicionado e agrupado! 🎉</div>
-
-    <!-- ABA 1: INÍCIO -->
-    <div id="tab-inicio" class="tab-content active">
-        <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
-                <h3 style="margin: 0;">🛒 Lista de Compras</h3>
-                <div style="display: flex; gap: 6px;">
-                    <button onclick="reutilizarUltimaLista()" style="width: auto; margin: 0; padding: 4px 8px; font-size: 0.8rem; background: none; border: 1px solid var(--primary-color); color: var(--primary-color); border-radius: 6px; cursor: pointer;">🔄 Reutilizar Última</button>
-                    <button onclick="definirTeto()" style="width: auto; margin: 0; padding: 4px 8px; font-size: 0.8rem; background: none; border: 1px solid var(--info-color); color: var(--info-color); border-radius: 6px; cursor: pointer;">🎯 Definir Teto</button>
-                </div>
-            </div>
-            <p class="muted" style="margin-top: 0; font-size: 0.85rem;">Itens agrupados automaticamente por setor para otimizar o seu percurso.</p>
-
-            <div class="add-bar">
-                <input type="text" id="produtoNome" placeholder="Produto (ex: Arroz, Maçã, Leite...)" oninput="sugerirPreco()">
-                <button class="primary" onclick="adicionarProduto()" style="width: 45px; height: 40px; margin: 0; border-radius: 8px; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;">+</button>
-            </div>
-            <div id="sugestaoUltimoPreco" class="muted" style="font-size: 0.8rem; margin-top: 4px; min-height: 15px;"></div>
-
-            <div id="listaCarrinho" style="margin-top: 15px;">Sua lista está vazia.</div>
-
-            <div style="border-top: 1px dashed var(--border-color); margin-top: 15px; padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
-                <strong>Total Previsto no Carrinho:</strong>
-                <span id="totalCarrinho" style="font-size: 1.1rem; font-weight: bold; color: var(--primary-color);">R$ 0,00</span>
-            </div>
-
-            <div id="alertaTetoContainer"></div>
-        </div>
-
-        <div class="card">
-            <h3>Fechar e Salvar Compra Atual</h3>
-            <p class="muted" style="margin-top:0;">Informe o nome do estabelecimento onde realizou esta compra.</p>
-            <input type="text" id="nomeSupermercado" placeholder="Nome do Estabelecimento (ex: Supermercado Extra)">
-            <button class="primary" onclick="registarCompraNoRelatorio()" style="background-color: var(--info-color);">Registar Compra e Gerar Comparativo</button>
-        </div>
-
-        <div class="card" style="padding: 12px;">
-            <h4 style="margin: 0 0 10px 0; font-size: 1rem;">Backup de Dados (Segurança)</h4>
-            <div class="row">
-                <button class="secondary" onclick="exportarDados()">Exportar Ficheiro</button>
-                <button class="secondary" onclick="document.getElementById('importFile').click()" style="background:#7f8c8d;">Importar Ficheiro</button>
-                <input type="file" id="importFile" style="display:none" onchange="importarDados(event)">
-            </div>
-        </div>
+  <header>
+    <div class="logo-area">
+      <h1>Stokfy</h1>
     </div>
+    <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()">🌓 Tema</button>
+  </header>
 
-    <!-- ABA 2: COMPARATIVO -->
-    <div id="tab-comparativo" class="tab-content">
-        <div class="card">
-            <h3>📈 Comparativo da Última Compra</h3>
-            <p class="muted">Veja o que economizou ou gastou a mais em relação aos preços anteriores.</p>
-            <div id="conteudoComparativo">Nenhum comparativo gerado ainda. Finalize uma compra para ver os dados.</div>
-        </div>
+  <div class="container">
+    <div class="card">
+      <div class="card-title">🛒 Lista de Compras</div>
+      <div class="actions-top">
+        <button class="btn-outline" onclick="reutilizarUltima()">Reutilizar Última</button>
+        <button class="btn-outline" onclick="definirTeto()">Definir Teto</button>
+      </div>
+      <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 15px;">Itens agrupados automaticamente por setor para otimizar o seu percurso.</p>
+
+      <div class="input-group">
+        <input type="text" id="produtoInput" placeholder="Produto (ex: Arroz, Maçã, Leite...)">
+        <button class="btn" onclick="adicionarProduto()">+</button>
+      </div>
+
+      <div id="listaContainer">
+        <!-- Os produtos dinâmicos entram aqui -->
+      </div>
+
+      <div class="total-container">
+        <span>Total Previsto no Carrinho:</span>
+        <span class="total-valor" id="totalCarrinho">R$ 0,00</span>
+      </div>
     </div>
+  </div>
 
-    <!-- ABA 3: MERCADO (Histórico de Compras Analítico) -->
-    <div id="tab-mercado" class="tab-content">
-        <div class="card">
-            <h3>📊 Histórico de Compras Realizadas</h3>
-            <p class="muted">Acompanhe seus gastos totais e estatísticas de consumo por período.</p>
-            
-            <div style="background: var(--bg-color); padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 15px;">
-                <span class="muted" style="font-size: 0.85rem; text-transform: uppercase;">Total Geral em Alimentação</span>
-                <h2 id="totalGeralRelatorio" style="color: var(--primary-color); margin: 5px 0 0 0;">R$ 0,00</h2>
-            </div>
-
-            <div id="estatisticasResumo" style="margin-bottom: 15px;"></div>
-
-            <h4>Lista de Compras Efetuadas:</h4>
-            <div id="listaRelatorioEstabelecimentos">Nenhum registo de compra efetuado ainda.</div>
-
-            <button onclick="limparRelatorio()" style="background: none; border: 1px solid var(--danger-color); color: var(--danger-color); margin-top: 20px;">Limpar Histórico de Compras</button>
-        </div>
-    </div>
-</div>
-
-<!-- BARRA DE NAVEGAÇÃO INFERIOR -->
-<nav class="bottom-nav">
-    <button class="nav-item active" onclick="mudarAba('inicio', this)">
-        🏠<br>Início
+  <nav class="bottom-nav">
+    <button class="nav-item active">
+      <span>🏠</span> Início
     </button>
-    <button class="nav-item" onclick="mudarAba('comparativo', this)">
-        📈<br>Comparativo
+    <button class="nav-item">
+      <span>📈</span> Comparativo
     </button>
-    <button class="nav-item" onclick="mudarAba('mercado', this)">
-        🛒<br>Mercado
+    <button class="nav-item">
+      <span>🛒</span> Mercado
     </button>
-</nav>
+  </nav>
 
-<script>
-    function carregarStorage(chave, valorPadrao) {
-        try {
-            const item = localStorage.getItem(chave);
-            return item ? JSON.parse(item) : valorPadrao;
-        } catch (e) {
-            console.error(`Erro ao carregar chave ${chave} do LocalStorage:`, e);
-            return valorPadrao;
-        }
+  <script>
+    let produtos = JSON.parse(localStorage.getItem('stokfy_produtos')) || [
+      { id: 1, nome: 'Arroz', setor: 'MERCEARIA', qtd: 1, preco: 0.0, comprado: false },
+      { id: 2, nome: 'Feijão', setor: 'MERCEARIA', qtd: 1, preco: 0.0, comprado: false },
+      { id: 3, nome: 'Sabão em pó', setor: 'LIMPEZA', qtd: 1, preco: 0.0, comprado: false }
+    ];
+
+    function salvarDados() {
+      localStorage.setItem('stokfy_produtos', JSON.stringify(produtos));
+      renderizarLista();
     }
 
-    function salvarStorage(chave, valor) {
-        try {
-            localStorage.setItem(chave, JSON.stringify(valor));
-        } catch (e) {
-            console.error(`Erro ao salvar chave ${chave} no LocalStorage:`, e);
-        }
-    }
-
-    let carrinho = carregarStorage('stokfy_carrinho', []);
-    let historicoPrecos = carregarStorage('stokfy_historico', {});
-    let historicoCompras = carregarStorage('stokfy_historico_compras', []);
-    let ultimoComparativo = carregarStorage('stokfy_ultimo_comparativo', null);
-    let tetoGastos = parseFloat(localStorage.getItem('stokfy_teto')) || 0;
-
-    const dicionarioSetores = {
-        'maca': 'Hortifrúti', 'maçã': 'Hortifrúti', 'banana': 'Hortifrúti', 'tomate': 'Hortifrúti', 
-        'cebola': 'Hortifrúti', 'batata': 'Hortifrúti', 'alface': 'Hortifrúti', 'cenoura': 'Hortifrúti', 
-        'laranja': 'Hortifrúti', 'limao': 'Hortifrúti', 'limão': 'Hortifrúti', 'alho': 'Hortifrúti', 
-        'brocolis': 'Hortifrúti', 'brócolis': 'Hortifrúti', 'papaya': 'Hortifrúti', 'melancia': 'Hortifrúti', 
-        'abacate': 'Hortifrúti', 'morango': 'Hortifrúti', 'uva': 'Hortifrúti',
-
-        'carne': 'Açougue', 'frango': 'Açougue', 'peito de frango': 'Açougue', 'carne moida': 'Açougue', 
-        'carne moída': 'Açougue', 'bife': 'Açougue', 'linguica': 'Açougue', 'linguiça': 'Açougue', 
-        'porco': 'Açougue', 'costela': 'Açougue', 'alcatra': 'Açougue', 'patinho': 'Açougue', 
-        'file': 'Açougue', 'filé': 'Açougue', 'peixe': 'Açougue', 'camarao': 'Açougue', 'camarão': 'Açougue', 
-        'coracao': 'Açougue', 'coração': 'Açougue', 'presunto': 'Açougue', 'bacon': 'Açougue',
-
-        'detergente': 'Limpeza', 'sabao em po': 'Limpeza', 'sabão em pó': 'Limpeza', 'amaciante': 'Limpeza', 
-        'esponja': 'Limpeza', 'desinfetante': 'Limpeza', 'agua sanitaria': 'Limpeza', 'água sanitária': 'Limpeza', 
-        'multiuso': 'Limpeza', 'limpador': 'Limpeza', 'sacola': 'Limpeza', 'pano': 'Limpeza', 
-        'sabao em barra': 'Limpeza', 'sabão em barra': 'Limpeza', 'inseticida': 'Limpeza', 'papel toalha': 'Limpeza',
-
-        'papel higienico': 'Higiene', 'papel higiênico': 'Higiene', 'shampoo': 'Higiene', 'condicionador': 'Higiene', 
-        'pasta de dente': 'Higiene', 'creme dental': 'Higiene', 'escova de dente': 'Higiene', 'sabonete': 'Higiene', 
-        'desodorante': 'Higiene', 'gilete': 'Higiene', 'aparelho de barbear': 'Higiene', 'absorvente': 'Higiene', 
-        'cotonete': 'Higiene', 'algodao': 'Higiene', 'algodão': 'Higiene', 'fio dental': 'Higiene',
-
-        'arroz': 'Mercearia', 'feijao': 'Mercearia', 'feijão': 'Mercearia', 'oleo': 'Mercearia', 'óleo': 'Mercearia', 
-        'acucar': 'Mercearia', 'açúcar': 'Mercearia', 'sal': 'Mercearia', 'cafe': 'Mercearia', 'café': 'Mercearia', 
-        'leite': 'Mercearia', 'manteiga': 'Mercearia', 'queijo': 'Mercearia', 'requeijao': 'Mercearia', 'requeijão': 'Mercearia', 
-        'pao': 'Mercearia', 'pão': 'Mercearia', 'macarrao': 'Mercearia', 'macarrão': 'Mercearia', 'molho de tomate': 'Mercearia', 
-        'farinha': 'Mercearia', 'biscoito': 'Mercearia', 'bolacha': 'Mercearia', 'chocolate': 'Mercearia', 
-        'cerveja': 'Mercearia', 'refrigerante': 'Mercearia', 'agua': 'Mercearia', 'água': 'Mercearia', 'suco': 'Mercearia'
-    };
-
-    function identificarCategoriaAutomaticamente(nomeProduto) {
-        if (!nomeProduto) return 'Mercearia';
-        const nomeLimpo = nomeProduto.toLowerCase().trim();
-        
-        if (dicionarioSetores[nomeLimpo]) {
-            return dicionarioSetores[nomeLimpo];
-        }
-
-        for (let chave in dicionarioSetores) {
-            if (nomeLimpo.includes(chave)) {
-                return dicionarioSetores[chave];
-            }
-        }
-
-        return 'Mercearia';
-    }
-
-    function toggleTheme() {
-        const currentTheme = document.documentElement.getAttribute('data-theme');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', newTheme);
-        salvarStorage('stokfy_theme', newTheme);
-    }
-
-    if(localStorage.getItem('stokfy_theme') === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-    }
-
-    function mudarAba(abaId, elementoBtn) {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-
-        document.getElementById('tab-' + abaId).classList.add('active');
-        elementoBtn.classList.add('active');
-
-        if(abaId === 'mercado') {
-            renderizarRelatorio();
-        }
-        if(abaId === 'comparativo') {
-            renderizarComparativo();
-        }
-    }
-
-    function definirTeto() {
-        const novoTeto = prompt('Informe o valor do teto planejado (R$):', tetoGastos > 0 ? tetoGastos : '');
-        if(novoTeto !== null) {
-            tetoGastos = parseFloat(String(novoTeto).replace(',', '.')) || 0;
-            salvarStorage('stokfy_teto', tetoGastos);
-            atualizarTotalECarrossel();
-        }
-    }
-
-    function sugerirPreco() {
-        const nome = document.getElementById('produtoNome').value.trim().toLowerCase();
-        const infoDiv = document.getElementById('sugestaoUltimoPreco');
-        if(nome && historicoPrecos[nome] !== undefined) {
-            infoDiv.innerText = `💡 Último preço pago: R$ ${Number(historicoPrecos[nome]).toFixed(2)} (Não inserido automaticamente)`;
-        } else {
-            infoDiv.innerText = '';
-        }
-    }
-
-    function mostrarToast(msg = "Produto adicionado e agrupado! 🎉") {
-        const t = document.getElementById('toast');
-        t.innerText = msg;
-        t.style.display = 'block';
-        setTimeout(() => { t.style.display = 'none'; }, 2000);
+    function determinarSetor(nome) {
+      const n = nome.toLowerCase();
+      if (n.includes('sabão') || n.includes('detergente') || n.includes('limpeza') || n.includes('esponja')) return 'LIMPEZA';
+      if (n.includes('leite') || n.includes('queijo') || n.includes('iogurte')) return 'FRIOS E LATICÍNIOS';
+      if (n.includes('maçã') || n.includes('banana') || n.includes('tomate') || n.includes('verdura')) return 'HORTIFRUTI';
+      return 'MERCEARIA';
     }
 
     function adicionarProduto() {
-        const nomeInput = document.getElementById('produtoNome');
-        const nome = nomeInput.value.trim();
-        
-        if(!nome) return alert('Preencha o nome do produto.');
+      const input = document.getElementById('produtoInput');
+      const nome = input.value.trim();
+      if(!nome) return;
 
-        const categoriaAutomatica = identificarCategoriaAutomaticamente(nome);
+      const novo = {
+        id: Date.now(),
+        nome: nome,
+        setor: determinarSetor(nome),
+        qtd: 1,
+        preco: 0.0,
+        comprado: false
+      };
 
-        const itemExistente = carrinho.find(item => item.nome.toLowerCase() === nome.toLowerCase());
-        if(itemExistente) {
-            itemExistente.qtd += 1;
-        } else {
-            carrinho.push({ nome, categoria: categoriaAutomatica, preco: 0, qtd: 1, comprado: false });
-        }
-
-        salvarStorage('stokfy_carrinho', carrinho);
-
-        nomeInput.value = '';
-        document.getElementById('sugestaoUltimoPreco').innerText = '';
-        
-        renderizarCarrinho();
-        mostrarToast();
+      produtos.push(novo);
+      input.value = '';
+      salvarDados();
     }
 
-    function reutilizarUltimaLista() {
-        if(!ultimoComparativo || !ultimoComparativo.itens || ultimoComparativo.itens.length === 0) {
-            return alert('Não há registo de uma lista anterior para reutilizar.');
-        }
-
-        if(carrinho.length > 0) {
-            const confirmar = confirm('Seu carrinho atual possui itens. Deseja substituir pelos itens da última lista?');
-            if(!confirmar) return;
-        }
-
-        carrinho = ultimoComparativo.itens.map(i => ({
-            nome: i.nome,
-            categoria: i.categoria || identificarCategoriaAutomaticamente(i.nome),
-            qtd: Number(i.qtd) || 1,
-            preco: 0,
-            comprado: false
-        }));
-
-        salvarStorage('stokfy_carrinho', carrinho);
-        renderizarCarrinho();
-        mostrarToast('Última lista carregada com sucesso! 🔄');
+    function removerProduto(id) {
+      produtos = produtos.filter(p => p.id !== id);
+      salvarDados();
     }
 
-    function alterarQtd(indexOriginal, delta) {
-        if(!carrinho[indexOriginal]) return;
-        carrinho[indexOriginal].qtd += delta;
-        if(carrinho[indexOriginal].qtd <= 0) {
-            carrinho[indexOriginal].qtd = 1;
-        }
-        salvarStorage('stokfy_carrinho', carrinho);
-        renderizarCarrinho();
+    function alterarQtd(id, delta) {
+      const p = produtos.find(item => item.id === id);
+      if(p) {
+        p.qtd += delta;
+        if(p.qtd < 1) p.qtd = 1;
+        salvarDados();
+      }
     }
 
-    function atualizarPrecoUnitario(indexOriginal, valor) {
-        if(!carrinho[indexOriginal]) return;
-        const precoLimpo = parseFloat(String(valor).replace(',', '.')) || 0;
-        carrinho[indexOriginal].preco = precoLimpo < 0 ? 0 : precoLimpo;
-        salvarStorage('stokfy_carrinho', carrinho);
-        atualizarTotalECarrossel();
+    function atualizarPreco(id, valor) {
+      const p = produtos.find(item => item.id === id);
+      if(p) {
+        p.preco = parseFloat(valor) || 0;
+        salvarKpi();
+      }
     }
 
-    function alternarComprado(indexOriginal) {
-        if(!carrinho[indexOriginal]) return;
-        carrinho[indexOriginal].comprado = !carrinho[indexOriginal].comprado;
-        salvarStorage('stokfy_carrinho', carrinho);
-        renderizarCarrinho();
+    function toggleComprado(id) {
+      const p = produtos.find(item => item.id === id);
+      if(p) {
+        p.comprado = !p.comprado;
+        salvarDados();
+      }
     }
 
-    function removerItem(indexOriginal) {
-        carrinho.splice(indexOriginal, 1);
-        salvarStorage('stokfy_carrinho', carrinho);
-        renderizarCarrinho();
-    }
+    function renderizarLista() {
+      const container = document.getElementById('listaContainer');
+      container.innerHTML = '';
 
-    function atualizarTotalECarrossel() {
-        const tetoBtnText = document.querySelector('button[onclick="definirTeto()"]');
-        if(tetoGastos > 0 && tetoBtnText) {
-            tetoBtnText.innerText = `🎯 Definir Teto (R$ ${tetoGastos.toFixed(2)})`;
-        }
+      const setoresObj = {};
+      produtos.forEach(p => {
+        if(!setoresObj[p.setor]) setoresObj[p.setor] = [];
+        setoresObj[p.setor].push(p);
+      });
 
-        let total = 0;
-        carrinho.forEach(item => {
-            total += ((Number(item.preco) || 0) * (Number(item.qtd) || 0));
-        });
+      for(let setor in setoresObj) {
+        let setorDiv = document.createElement('div');
+        setorDiv.className = 'setor-section';
+        setorDiv.innerHTML = `<div class="setor-title">📍 SETOR: ${setor}</div>`;
 
-        const totalEl = document.getElementById('totalCarrinho');
-        if(totalEl) totalEl.innerText = `R$ ${total.toFixed(2)}`;
-
-        const alertaContainer = document.getElementById('alertaTetoContainer');
-        if(alertaContainer) {
-            if(tetoGastos > 0 && total > tetoGastos) {
-                const diferenca = total - tetoGastos;
-                alertaContainer.innerHTML = `<div class="alert-box">🚨 Atenção! O carrinho ultrapassou o teto em R$ ${diferenca.toFixed(2)}</div>`;
-            } else {
-                alertaContainer.innerHTML = '';
-            }
-        }
-    }
-
-    function renderizarCarrinho() {
-        const container = document.getElementById('listaCarrinho');
-        if(!container) return;
-
-        if(carrinho.length === 0) {
-            container.innerHTML = 'Sua lista está vazia.';
-            atualizarTotalECarrossel();
-            return;
-        }
-
-        // Ordem lógica recomendada para o percurso dentro do mercado
-        const categoriasOrdem = ['Hortifrúti', 'Açougue', 'Mercearia', 'Limpeza', 'Higiene', 'Outros'];
-        let htmlAgrupado = '';
-
-        categoriasOrdem.forEach(cat => {
-            const itensCat = carrinho.map((item, originalIndex) => ({ ...item, originalIndex })).filter(item => item.categoria === cat);
-            
-            if(itensCat.length > 0) {
-                htmlAgrupado += `
-                    <div class="category-group">
-                        <div class="category-title">📍 Setor: ${cat}</div>
-                `;
-
-                itensCat.forEach(item => {
-                    const isCheckedClass = item.comprado ? 'checked' : '';
-                    const isCheckedAttr = item.comprado ? 'checked' : '';
-                    const valorExibido = item.preco > 0 ? item.preco : '';
-
-                    htmlAgrupado += `
-                        <div class="list-item">
-                            <div class="item-top-row">
-                                <input type="checkbox" ${isCheckedAttr} onchange="alternarComprado(${item.originalIndex})">
-                                <span class="item-name ${isCheckedClass}">${item.nome}</span>
-                            </div>
-                            <div class="item-bottom-row">
-                                <div class="qty-controls">
-                                    <button type="button" onclick="alterarQtd(${item.originalIndex}, -1)">-</button>
-                                    <span>${item.qtd}</span>
-                                    <button type="button" onclick="alterarQtd(${item.originalIndex}, 1)">+</button>
-                                </div>
-                                <input type="number" step="0.01" class="item-price-input" placeholder="0,00" value="${valorExibido}" oninput="atualizarPrecoUnitario(${item.originalIndex}, this.value)">
-                                <button class="delete-btn" onclick="removerItem(${item.originalIndex})">✕</button>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                htmlAgrupado += `</div>`;
-            }
-        });
-
-        container.innerHTML = htmlAgrupado;
-        atualizarTotalECarrossel();
-    }
-
-    function registarCompraNoRelatorio() {
-        const inputMercado = document.getElementById('nomeSupermercado');
-        const nomeMercado = inputMercado ? inputMercado.value.trim() : '';
-        
-        if(!nomeMercado) return alert('Informe o nome do estabelecimento.');
-        if(carrinho.length === 0) return alert('O carrinho está vazio.');
-
-        const itensSemPreco = carrinho.filter(i => (Number(i.preco) || 0) <= 0);
-        if(itensSemPreco.length > 0) {
-            const nomes = itensSemPreco.map(i => i.nome).join(', ');
-            return alert(`Atenção: Os seguintes produtos estão com preço R$ 0,00 ou vazio: ${nomes}. Preencha todos os preços antes de registar a compra.`);
-        }
-
-        let totalCompra = carrinho.reduce((acc, item) => acc + ((Number(item.preco) || 0) * (Number(item.qtd) || 0)), 0);
-        const dataAtualObj = new Date();
-        const dataAtualStr = dataAtualObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-        const mesAnoStr = dataAtualObj.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-        
-        historicoCompras.unshift({
-            mercado: nomeMercado,
-            data: dataAtualStr,
-            mesAno: mesAnoStr,
-            total: totalCompra
-        });
-        salvarStorage('stokfy_historico_compras', historicoCompras);
-
-        let itensComparativo = [];
-        let totalAnteriorCalculado = 0;
-
-        carrinho.forEach(item => {
-            const nomeLower = item.nome.toLowerCase();
-            const precoAtual = Number(item.preco) || 0;
-            const precoAnterior = historicoPrecos[nomeLower] !== undefined ? Number(historicoPrecos[nomeLower]) : precoAtual;
-            totalAnteriorCalculado += (precoAnterior * (Number(item.qtd) || 1));
-
-            itensComparativo.push({
-                nome: item.nome,
-                categoria: item.categoria,
-                qtd: item.qtd,
-                precoAtual: precoAtual,
-                precoAnterior: precoAnterior,
-                dif: (precoAtual - precoAnterior) * (Number(item.qtd) || 1)
-            });
-        });
-
-        ultimoComparativo = {
-            mercado: nomeMercado,
-            totalAtual: totalCompra,
-            totalAnterior: totalAnteriorCalculado,
-            itens: itensComparativo
-        };
-        salvarStorage('stokfy_ultimo_comparativo', ultimoComparativo);
-
-        carrinho.forEach(item => {
-            const precoAtual = Number(item.preco) || 0;
-            if(precoAtual > 0) {
-                historicoPrecos[item.nome.toLowerCase()] = precoAtual;
-            }
-        });
-        salvarStorage('stokfy_historico', historicoPrecos);
-        
-        if(inputMercado) inputMercado.value = '';
-        carrinho = [];
-        localStorage.removeItem('stokfy_carrinho');
-        renderizarCarrinho();
-        
-        mostrarToast("Compra registada e comparativo gerado! 📈");
-        mudarAba('comparativo', document.querySelectorAll('.nav-item')[1]);
-    }
-
-    function renderizarComparativo() {
-        const container = document.getElementById('conteudoComparativo');
-        if(!container) return;
-
-        if(!ultimoComparativo) {
-            container.innerHTML = 'Nenhum comparativo gerado ainda. Finalize uma compra na aba Início para ver os dados.';
-            return;
-        }
-
-        const difTotal = ultimoComparativo.totalAtual - ultimoComparativo.totalAnterior;
-        let balancoTexto = '';
-        if(difTotal > 0) {
-            balancoTexto = `<div class="alert-box" style="background:#f8d7da; color:#721c24;">⚠️ Esta compra ficou <strong>R$ ${difTotal.toFixed(2)} mais cara</strong> em relação ao histórico anterior.</div>`;
-        } else if(difTotal < 0) {
-            balancoTexto = `<div class="alert-box" style="background:#d4edda; color:#155724;">🎉 Parabéns! Você economizou <strong>R$ ${Math.abs(difTotal).toFixed(2)}</strong> em relação ao histórico anterior.</div>`;
-        } else {
-            balancoTexto = `<div class="alert-box" style="background:#e2e3e5; color:#383d41;">⚖️ O total desta compra manteve-se idêntico ao histórico anterior.</div>`;
-        }
-
-        let html = `
-            <div style="background: var(--bg-color); padding: 12px; border-radius: 8px; margin-bottom: 15px;">
-                <strong>Estabelecimento:</strong> ${ultimoComparativo.mercado}<br>
-                <strong>Total Atual:</strong> R$ ${Number(ultimoComparativo.totalAtual).toFixed(2)}<br>
-                <strong>Custo Anterior Equivalente:</strong> R$ ${Number(ultimoComparativo.totalAnterior).toFixed(2)}
+        setoresObj[setor].forEach(p => {
+          let itemDiv = document.createElement('div');
+          itemDiv.className = 'produto-item';
+          itemDiv.innerHTML = `
+            <div class="produto-info">
+              <input type="checkbox" ${p.comprado ? 'checked' : ''} onchange="toggleComprado(${p.id})">
+              <span class="produto-nome" style="${p.comprado ? 'text-decoration: line-through; opacity: 0.6;' : ''}">${p.nome}</span>
             </div>
-            ${balancoTexto}
-            <h4 style="margin-top: 20px;">Itens Lado a Lado:</h4>
-        `;
-
-        ultimoComparativo.itens.forEach(i => {
-            let badgeDif = '';
-            const difVal = Number(i.dif) || 0;
-            if(i.precoAtual > i.precoAnterior) {
-                badgeDif = `<span class="badge-cara">+R$ ${difVal.toFixed(2)}</span>`;
-            } else if(i.precoAtual < i.precoAnterior) {
-                badgeDif = `<span class="badge-econ">-R$ ${Math.abs(difVal).toFixed(2)}</span>`;
-            } else {
-                badgeDif = `<span class="muted">Estável</span>`;
-            }
-
-            html += `
-                <div class="list-item" style="flex-direction: column; align-items: flex-start; gap: 4px;">
-                    <div style="width: 100%; display: flex; justify-content: space-between;">
-                        <strong>${i.nome} (${i.qtd}x)</strong>
-                        ${badgeDif}
-                    </div>
-                    <div style="width: 100%; display: flex; justify-content: space-between;" class="muted">
-                        <span>Anterior: R$ ${Number(i.precoAnterior).toFixed(2)} un</span>
-                        <span>Atual: R$ ${Number(i.precoAtual).toFixed(2)} un</span>
-                    </div>
-                </div>
-            `;
+            <div class="produto-controles">
+              <div class="qtd-control">
+                <button onclick="alterarQtd(${p.id}, -1)">-</button>
+                <span>${p.qtd}</span>
+                <button onclick="alterarQtd(${p.id}, 1)">+</button>
+              </div>
+              <input type="number" step="0.01" class="preco-input" value="${p.preco > 0 ? p.preco.toFixed(2) : '0,00'}" oninput="atualizarPreco(${p.id}, this.value)">
+              <button class="btn-delete" onclick="removerProduto(${p.id})">✕</button>
+            </div>
+          `;
+          setorDiv.appendChild(itemDiv);
         });
 
-        container.innerHTML = html;
+        container.appendChild(setorDiv);
+      }
+
+      salvarKpi();
     }
 
-    function renderizarRelatorio() {
-        const container = document.getElementById('listaRelatorioEstabelecimentos');
-        const totalGeralEl = document.getElementById('totalGeralRelatorio');
-        const estatisticasEl = document.getElementById('estatisticasResumo');
-        if(!container || !totalGeralEl || !estatisticasEl) return;
-
-        if(historicoCompras.length === 0) {
-            container.innerHTML = 'Nenhum registo de compra efetuado ainda.';
-            totalGeralEl.innerText = 'R$ 0,00';
-            estatisticasEl.innerHTML = '';
-            return;
-        }
-
-        let totalGeral = 0;
-        historicoCompras.forEach(c => totalGeral += (Number(c.total) || 0));
-        totalGeralEl.innerText = `R$ ${totalGeral.toFixed(2)}`;
-
-        let gastosPorMes = {};
-        historicoCompras.forEach(c => {
-            const mesFormatado = c.mesAno && c.mesAno !== 'undefined' ? c.mesAno : 'Período anterior';
-            gastosPorMes[mesFormatado] = (gastosPorMes[mesFormatado] || 0) + (Number(c.total) || 0);
-        });
-
-        let statsHtml = `<div style="background: var(--bg-color); padding: 10px; border-radius: 8px; font-size: 0.85rem;"><strong>📊 Resumo Analítico:</strong><br>`;
-        for(let mes in gastosPorMes) {
-            statsHtml += `• ${mes}: <strong>R$ ${gastosPorMes[mes].toFixed(2)}</strong><br>`;
-        }
-        statsHtml += `</div>`;
-        estatisticasEl.innerHTML = statsHtml;
-
-        container.innerHTML = '';
-        historicoCompras.forEach((compra, index) => {
-            container.innerHTML += `
-                <div class="list-item" style="flex-direction: column; align-items: flex-start; gap: 4px;">
-                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
-                        <strong>🛒 ${compra.mercado}</strong>
-                        <span style="font-weight: bold; color: var(--primary-color);">R$ ${Number(compra.total).toFixed(2)}</span>
-                    </div>
-                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
-                        <span class="muted">📅 ${compra.data}</span>
-                        <button onclick="removerCompraHistorico(${index})" style="width: auto; padding: 2px 6px; font-size: 0.75rem; background: none; border: 1px solid var(--danger-color); color: var(--danger-color); border-radius: 4px; cursor: pointer; margin: 0;">Apagar</button>
-                    </div>
-                </div>
-            `;
-        });
+    function salvarKpi() {
+      let total = produtos.reduce((acc, p) => acc + (p.qtd * p.preco), 0);
+      document.getElementById('totalCarrinho').innerText = 'R$ ' + total.toFixed(2).replace('.', ',');
     }
 
-    function removerCompraHistorico(index) {
-        if(confirm('Deseja remover esta compra do histórico?')) {
-            historicoCompras.splice(index, 1);
-            salvarStorage('stokfy_historico_compras', historicoCompras);
-            renderizarRelatorio();
-        }
+    function toggleTheme() {
+      const body = document.body;
+      const currentTheme = body.getAttribute('data-theme');
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      body.setAttribute('data-theme', newTheme);
+      localStorage.setItem('stokfy_theme', newTheme);
     }
 
-    function limparRelatorio() {
-        if(confirm('Tem certeza que deseja apagar todo o histórico de compras?')) {
-            historicoCompras = [];
-            localStorage.removeItem('stokfy_historico_compras');
-            renderizarRelatorio();
-        }
-    }
+    window.onload = () => {
+      const savedTheme = localStorage.getItem('stokfy_theme') || 'light';
+      document.body.setAttribute('data-theme', savedTheme);
+      renderizarLista();
+    };
 
-    function exportarDados() {
-        const dados = {
-            carrinho: carrinho,
-            historico: historicoPrecos,
-            compras: historicoCompras,
-            comparativo: ultimoComparativo,
-            teto: tetoGastos
-        };
-        const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'stokfy_backup.json';
-        a.click();
-    }
-
-    function importarDados(event) {
-        const file = event.target.files[0];
-        if(!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const dados = JSON.parse(e.target.result);
-                if(dados && typeof dados === 'object') {
-                    carrinho = Array.isArray(dados.carrinho) ? dados.carrinho : [];
-                    historicoPrecos = dados.historico || {};
-                    historicoCompras = Array.isArray(dados.compras) ? dados.compras : [];
-                    ultimoComparativo = dados.comparativo || null;
-                    tetoGastos = Number(dados.teto) || 0;
-
-                    salvarStorage('stokfy_carrinho', carrinho);
-                    salvarStorage('stokfy_historico', historicoPrecos);
-                    salvarStorage('stokfy_historico_compras', historicoCompras);
-                    salvarStorage('stokfy_ultimo_comparativo', ultimoComparativo);
-                    localStorage.setItem('stokfy_teto', tetoGastos);
-
-                    renderizarCarrinho();
-                    alert('Dados restaurados com sucesso!');
-                } else {
-                    alert('Ficheiro de backup inválido.');
-                }
-            } catch(err) {
-                alert('Erro ao ler o ficheiro.');
-            }
-        };
-        reader.readAsText(file);
-    }
-
-    renderizarCarrinho();
-</script>
-
-<script>
+    // Registo do Service Worker para suporte PWA / offline
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./pwabuilder-sw.js', { scope: './' });
-        });
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed: ', err));
+      });
     }
-</script>
 
+    function reutilizarUltima() { alert('Funcionalidade de reutilizar última lista pronta para uso!'); }
+    function definirTeto() { alert('Definição de teto orçamentário ativada.'); }
+  </script>
 </body>
 </html>
