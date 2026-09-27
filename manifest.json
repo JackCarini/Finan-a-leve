@@ -1,6 +1,6 @@
 {
-  "name": "Anota Tudo",
-  "short_name": "Anota Tudo",
+  "name": "Stokfy",
+  "short_name": "Stokfy",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#ffffff",
