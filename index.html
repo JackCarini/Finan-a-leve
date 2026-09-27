@@ -15,7 +15,6 @@
             --primary-color: #27ae60;
             --danger-color: #e74c3c;
             --info-color: #2980b9;
-            --warning-color: #f39c12;
         }
 
         [data-theme="dark"] {
@@ -27,7 +26,6 @@
             --primary-color: #2ecc71;
             --danger-color: #e74c3c;
             --info-color: #3498db;
-            --warning-color: #f1c40f;
         }
 
         body {
@@ -114,8 +112,27 @@
             border-bottom: 1px solid var(--border-color);
         }
 
+        .item-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-grow: 1;
+        }
+
+        .item-left input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin: 0;
+            cursor: pointer;
+        }
+
         .item-info {
             flex-grow: 1;
+        }
+
+        .item-info.checked {
+            text-decoration: line-through;
+            opacity: 0.6;
         }
 
         .qty-controls {
@@ -126,16 +143,48 @@
         }
 
         .qty-controls button {
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             padding: 0;
             margin: 0;
             font-weight: bold;
             background: var(--border-color);
             color: var(--text-color);
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
+        }
+
+        /* Seletor de quantidade no formulário de adição */
+        .input-stepper {
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--card-bg);
+            margin-top: 6px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .input-stepper button {
+            width: 40px;
+            height: 40px;
+            margin: 0;
+            background: var(--border-color);
+            color: var(--text-color);
+            border: none;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 0;
+        }
+
+        .input-stepper span {
+            flex-grow: 1;
+            text-align: center;
+            font-size: 1rem;
+            font-weight: bold;
         }
 
         .muted { color: var(--text-muted); font-size: 0.9rem; }
@@ -212,7 +261,11 @@
                 </div>
                 <div>
                     <label class="muted">Quantidade</label>
-                    <input type="number" id="produtoQtd" value="1" min="1">
+                    <div class="input-stepper">
+                        <button type="button" onclick="mudarQtdForm(-1)">-</button>
+                        <span id="formQtd">1</span>
+                        <button type="button" onclick="mudarQtdForm(1)">+</button>
+                    </div>
                 </div>
             </div>
 
@@ -275,6 +328,7 @@
     let carrinho = JSON.parse(localStorage.getItem('stokfy_carrinho')) || [];
     let historicoPrecos = JSON.parse(localStorage.getItem('stokfy_historico')) || {};
     let relatorioEstabelecimentos = JSON.parse(localStorage.getItem('stokfy_relatorio')) || {};
+    let qtdFormAtual = 1;
 
     function toggleTheme() {
         const currentTheme = document.documentElement.getAttribute('data-theme');
@@ -299,6 +353,12 @@
         }
     }
 
+    function mudarQtdForm(delta) {
+        qtdFormAtual += delta;
+        if(qtdFormAtual < 1) qtdFormAtual = 1;
+        document.getElementById('formQtd').innerText = qtdFormAtual;
+    }
+
     function sugerirPreco() {
         const nome = document.getElementById('produtoNome').value.trim().toLowerCase();
         if(historicoPrecos[nome]) {
@@ -317,7 +377,7 @@
         const nome = document.getElementById('produtoNome').value.trim();
         const precoInput = document.getElementById('produtoPreco').value.trim();
         const preco = precoInput === '' ? 0 : parseFloat(precoInput);
-        const qtd = parseInt(document.getElementById('produtoQtd').value) || 1;
+        const qtd = qtdFormAtual;
 
         if(!nome) return alert('Preencha o nome do produto.');
 
@@ -326,7 +386,7 @@
             itemExistente.qtd += qtd;
             if(preco > 0) itemExistente.preco = preco;
         } else {
-            carrinho.push({ nome, preco, qtd });
+            carrinho.push({ nome, preco, qtd, comprado: false });
         }
 
         if(preco > 0) {
@@ -338,7 +398,8 @@
 
         document.getElementById('produtoNome').value = '';
         document.getElementById('produtoPreco').value = '';
-        document.getElementById('produtoQtd').value = '1';
+        qtdFormAtual = 1;
+        document.getElementById('formQtd').innerText = '1';
         
         renderizarCarrinho();
         mostrarToast();
@@ -349,6 +410,12 @@
         if(carrinho[index].qtd <= 0) {
             carrinho.splice(index, 1);
         }
+        localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
+        renderizarCarrinho();
+    }
+
+    function alternarComprado(index) {
+        carrinho[index].comprado = !carrinho[index].comprado;
         localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
         renderizarCarrinho();
     }
@@ -378,11 +445,17 @@
                 ? `R$ ${item.preco.toFixed(2)} un | Subtotal: R$ ${subtotal.toFixed(2)}`
                 : `Preço não definido`;
 
+            const isCheckedClass = item.comprado ? 'checked' : '';
+            const isCheckedAttr = item.comprado ? 'checked' : '';
+
             container.innerHTML += `
                 <div class="list-item">
-                    <div class="item-info">
-                        <strong>${item.nome}</strong><br>
-                        <span class="muted">${infoPreco}</span>
+                    <div class="item-left">
+                        <input type="checkbox" ${isCheckedAttr} onchange="alternarComprado(${index})">
+                        <div class="item-info ${isCheckedClass}">
+                            <strong>${item.nome}</strong><br>
+                            <span class="muted">${infoPreco}</span>
+                        </div>
                     </div>
                     <div class="qty-controls">
                         <button onclick="alterarQtd(${index}, -1)">-</button>
