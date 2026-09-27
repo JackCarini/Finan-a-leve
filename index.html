@@ -52,12 +52,6 @@
       border-bottom: 1px solid var(--border-color);
     }
 
-    .logo-area {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
     .logo-area h1 {
       font-size: 1.5rem;
       color: var(--primary-color);
@@ -77,6 +71,14 @@
       max-width: 600px;
       margin: 20px auto;
       padding: 0 15px;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
     }
 
     .card {
@@ -157,7 +159,6 @@
       text-transform: uppercase;
     }
 
-    /* Correção do alinhamento do X */
     .produto-item {
       display: flex;
       align-items: center;
@@ -290,38 +291,59 @@
   </header>
 
   <div class="container">
-    <div class="card">
-      <div class="card-title">🛒 Lista de Compras</div>
-      <div class="actions-top">
-        <button class="btn-outline" onclick="reutilizarUltima()">Reutilizar Última</button>
-        <button class="btn-outline" onclick="definirTeto()">Definir Teto</button>
-      </div>
-      <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 15px;">Itens agrupados automaticamente por setor para otimizar o seu percurso.</p>
+    <!-- ABA 1: INÍCIO -->
+    <div id="tab-inicio" class="tab-content active">
+      <div class="card">
+        <div class="card-title">🛒 Lista de Compras</div>
+        <div class="actions-top">
+          <button class="btn-outline" onclick="reutilizarUltima()">Reutilizar Última</button>
+          <button class="btn-outline" onclick="definirTeto()">Definir Teto</button>
+        </div>
+        <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 15px;">Itens agrupados automaticamente por setor para otimizar o seu percurso.</p>
 
-      <div class="input-group">
-        <input type="text" id="produtoInput" placeholder="Produto (ex: Arroz, Maçã, Leite...)">
-        <button class="btn" onclick="adicionarProduto()">+</button>
-      </div>
+        <div class="input-group">
+          <input type="text" id="produtoInput" placeholder="Produto (ex: Arroz, Maçã, Leite...)">
+          <button class="btn" onclick="adicionarProduto()">+</button>
+        </div>
 
-      <div id="listaContainer">
-        <!-- Os produtos dinâmicos entram aqui -->
-      </div>
+        <div id="listaContainer"></div>
 
-      <div class="total-container">
-        <span>Total Previsto no Carrinho:</span>
-        <span class="total-valor" id="totalCarrinho">R$ 0,00</span>
+        <div class="total-container">
+          <span>Total Previsto no Carrinho:</span>
+          <span class="total-valor" id="totalCarrinho">R$ 0,00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABA 2: COMPARATIVO -->
+    <div id="tab-comparativo" class="tab-content">
+      <div class="card">
+        <div class="card-title">📈 Comparativo de Preços</div>
+        <p style="font-size: 0.9rem; color: #7f8c8d; margin-top: 10px;">
+          Aqui poderá comparar o custo total das suas compras entre diferentes estabelecimentos registados.
+        </p>
+      </div>
+    </div>
+
+    <!-- ABA 3: MERCADO -->
+    <div id="tab-mercado" class="tab-content">
+      <div class="card">
+        <div class="card-title">🏪 Gestão de Mercados</div>
+        <p style="font-size: 0.9rem; color: #7f8c8d; margin-top: 10px;">
+          Registe e selecione os estabelecimentos onde realiza as suas compras habituais.
+        </p>
       </div>
     </div>
   </div>
 
   <nav class="bottom-nav">
-    <button class="nav-item active">
+    <button class="nav-item active" onclick="mudarAba('inicio', this)">
       <span>🏠</span> Início
     </button>
-    <button class="nav-item">
+    <button class="nav-item" onclick="mudarAba('comparativo', this)">
       <span>📈</span> Comparativo
     </button>
-    <button class="nav-item">
+    <button class="nav-item" onclick="mudarAba('mercado', this)">
       <span>🛒</span> Mercado
     </button>
   </nav>
@@ -442,6 +464,14 @@
       document.getElementById('totalCarrinho').innerText = 'R$ ' + total.toFixed(2).replace('.', ',');
     }
 
+    function mudarAba(abaId, elementoBtn) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+
+      document.getElementById('tab-' + abaId).classList.add('active');
+      elementoBtn.classList.add('active');
+    }
+
     function toggleTheme() {
       const body = document.body;
       const currentTheme = body.getAttribute('data-theme');
@@ -456,7 +486,6 @@
       renderizarLista();
     };
 
-    // Registo do Service Worker para suporte PWA / offline
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed: ', err));
