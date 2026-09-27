@@ -383,7 +383,7 @@
         if(novoTeto !== null) {
             tetoGastos = parseFloat(novoTeto.replace(',', '.')) || 0;
             localStorage.setItem('stokfy_teto', tetoGastos);
-            renderizarCarrinho();
+            atualizarTotalECarrossel();
         }
     }
 
@@ -447,7 +447,9 @@
             localStorage.setItem('stokfy_historico', JSON.stringify(historicoPrecos));
         }
         localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
-        renderizarCarrinho();
+        
+        // Apenas atualiza o valor total e alertas sem recriar o input, mantendo o foco ativo!
+        atualizarTotalECarrossel();
     }
 
     function alternarComprado(index) {
@@ -462,30 +464,42 @@
         renderizarCarrinho();
     }
 
-    function renderizarCarrinho() {
-        const container = document.getElementById('listaCarrinho');
+    function atualizarTotalECarrossel() {
         const tetoBtnText = document.querySelector('button[onclick="definirTeto()"]');
         if(tetoGastos > 0) {
             tetoBtnText.innerText = `🎯 Definir Teto (R$ ${tetoGastos.toFixed(2)})`;
         }
 
         let total = 0;
+        carrinho.forEach(item => {
+            total += (item.preco * item.qtd);
+        });
+
+        document.getElementById('totalCarrinho').innerText = `R$ ${total.toFixed(2)}`;
+
+        const alertaContainer = document.getElementById('alertaTetoContainer');
+        if(tetoGastos > 0 && total > tetoGastos) {
+            const diferenca = total - tetoGastos;
+            alertaContainer.innerHTML = `<div class="alert-box">🚨 Atenção! O carrinho ultrapassou o teto em R$ ${diferenca.toFixed(2)}</div>`;
+        } else {
+            alertaContainer.innerHTML = '';
+        }
+    }
+
+    function renderizarCarrinho() {
+        const container = document.getElementById('listaCarrinho');
 
         if(carrinho.length === 0) {
             container.innerHTML = 'Sua lista está vazia.';
-            document.getElementById('totalCarrinho').innerText = 'R$ 0,00';
-            document.getElementById('alertaTetoContainer').innerHTML = '';
+            atualizarTotalECarrossel();
             return;
         }
 
         container.innerHTML = '';
         carrinho.forEach((item, index) => {
-            const subtotal = item.preco * item.qtd;
-            total += subtotal;
-
             const isCheckedClass = item.comprado ? 'checked' : '';
             const isCheckedAttr = item.comprado ? 'checked' : '';
-            const valorExibido = item.preco > 0 ? item.preco.toFixed(2) : '';
+            const valorExibido = item.preco > 0 ? item.preco : '';
 
             container.innerHTML += `
                 <div class="list-item">
@@ -504,15 +518,7 @@
             `;
         });
 
-        document.getElementById('totalCarrinho').innerText = `R$ ${total.toFixed(2)}`;
-
-        const alertaContainer = document.getElementById('alertaTetoContainer');
-        if(tetoGastos > 0 && total > tetoGastos) {
-            const diferenca = total - tetoGastos;
-            alertaContainer.innerHTML = `<div class="alert-box">🚨 Atenção! O carrinho ultrapassou o teto em R$ ${diferenca.toFixed(2)}</div>`;
-        } else {
-            alertaContainer.innerHTML = '';
-        }
+        atualizarTotalECarrossel();
     }
 
     function registarCompraNoRelatorio() {
