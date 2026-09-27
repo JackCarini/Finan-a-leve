@@ -52,6 +52,12 @@
       border-bottom: 1px solid var(--border-color);
     }
 
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
     .logo-area h1 {
       font-size: 1.5rem;
       color: var(--primary-color);
@@ -112,11 +118,19 @@
       border-radius: 8px;
       cursor: pointer;
       font-weight: bold;
+      width: 100%;
       transition: background-color 0.2s;
     }
 
     .btn:hover {
       background-color: var(--primary-hover);
+    }
+
+    .btn-blue {
+      background-color: #2980b9;
+    }
+    .btn-blue:hover {
+      background-color: #2471a3;
     }
 
     .btn-outline {
@@ -250,6 +264,16 @@
       color: var(--primary-color);
     }
 
+    .badge-success {
+      background-color: #d4edda;
+      color: #155724;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      margin-top: 10px;
+      text-align: center;
+    }
+
     nav.bottom-nav {
       position: fixed;
       bottom: 0;
@@ -285,6 +309,7 @@
 
   <header>
     <div class="logo-area">
+      <span>🛒</span>
       <h1>Stokfy</h1>
     </div>
     <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()">🌓 Tema</button>
@@ -303,7 +328,7 @@
 
         <div class="input-group">
           <input type="text" id="produtoInput" placeholder="Produto (ex: Arroz, Maçã, Leite...)">
-          <button class="btn" onclick="adicionarProduto()">+</button>
+          <button class="btn" style="width: auto;" onclick="adicionarProduto()">+</button>
         </div>
 
         <div id="listaContainer"></div>
@@ -313,31 +338,45 @@
           <span class="total-valor" id="totalCarrinho">R$ 0,00</span>
         </div>
       </div>
+
+      <div class="card">
+        <div class="card-title">Fechar e Salvar Compra Atual</div>
+        <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 15px;">Informe o nome do estabelecimento onde realizou esta compra.</p>
+        <div style="margin-bottom: 15px;">
+          <input type="text" id="estabInput" placeholder="Nome do Estabelecimento (ex: Supermercado Extra)">
+        </div>
+        <button class="btn btn-blue" onclick="fecharCompra()">Registar Compra e Gerar Comparativo</button>
+      </div>
     </div>
 
     <!-- ABA 2: COMPARATIVO -->
     <div id="tab-comparativo" class="tab-content">
       <div class="card">
-        <div class="card-title">📈 Comparativo de Preços</div>
-        <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 15px;">Acompanhe o custo total da sua lista atual entre diferentes estabelecimentos.</p>
-        <div id="comparativoContainer">
-          <p style="font-size: 0.9rem;">Insira preços nos produtos da aba Início para visualizar o comparativo de gastos por mercado.</p>
+        <div class="card-title">📈 Comparativo da Última Compra</div>
+        <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 15px;">Veja o que economizou ou gastou a mais em relação aos preços anteriores.</p>
+        <div id="comparativoUltimaContainer">
+          <p style="font-size: 0.9rem; color: #7f8c8d;">Nenhuma compra registada recentemente para comparativo.</p>
         </div>
       </div>
     </div>
 
-    <!-- ABA 3: MERCADO -->
+    <!-- ABA 3: MERCADO (HISTÓRICO) -->
     <div id="tab-mercado" class="tab-content">
       <div class="card">
-        <div class="card-title">🏪 Gestão de Mercados</div>
-        <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 15px;">Registe os locais onde costuma fazer compras.</p>
+        <div class="card-title">📊 Histórico de Compras Realizadas</div>
+        <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 15px;">Acompanhe seus gastos totais e estatísticas de consumo por período.</p>
         
-        <div class="input-group">
-          <input type="text" id="mercadoInput" placeholder="Nome do Supermercado (ex: Extra, Carrefour...)">
-          <button class="btn" onclick="adicionarMercado()">+</button>
+        <div style="background-color: var(--bg-color); padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 15px; border: 1px solid var(--border-color);">
+          <span style="font-size: 0.8rem; text-transform: uppercase; color: #7f8c8d; font-weight: bold;">Total Geral em Alimentação</span>
+          <div id="totalGeralHistorico" style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color); margin-top: 5px;">R$ 0,00</div>
         </div>
 
-        <div id="mercadoContainer" style="margin-top: 15px;"></div>
+        <div style="font-weight: bold; margin-bottom: 10px; font-size: 0.95rem;">Lista de Compras Efetuadas:</div>
+        <div id="historicoContainer">
+          <p style="font-size: 0.9rem; color: #7f8c8d;">Nenhum registo de compra efetuado ainda.</p>
+        </div>
+
+        <button class="btn-outline" style="width: 100%; border-color: var(--danger-color); color: var(--danger-color); margin-top: 20px;" onclick="limparHistorico()">Limpar Histórico de Compras</button>
       </div>
     </div>
   </div>
@@ -355,21 +394,13 @@
   </nav>
 
   <script>
-    let produtos = JSON.parse(localStorage.getItem('stokfy_produtos')) || [
-      { id: 1, nome: 'Arroz', setor: 'MERCEARIA', qtd: 1, preco: 0.0, comprado: false },
-      { id: 2, nome: 'Feijão', setor: 'MERCEARIA', qtd: 1, preco: 0.0, comprado: false }
-    ];
-
-    let mercados = JSON.parse(localStorage.getItem('stokfy_mercados')) || ['Supermercado Local', 'Hipermercado Central'];
+    let produtos = JSON.parse(localStorage.getItem('stokfy_produtos')) || [];
+    let historicoCompras = JSON.parse(localStorage.getItem('stokfy_historico')) || [];
+    let ultimaComparacao = JSON.parse(localStorage.getItem('stokfy_ultima_comp')) || null;
 
     function salvarDados() {
       localStorage.setItem('stokfy_produtos', JSON.stringify(produtos));
       renderizarLista();
-    }
-
-    function salvarMercados() {
-      localStorage.setItem('stokfy_mercados', JSON.stringify(mercados));
-      renderizarMercados();
     }
 
     function determinarSetor(nome) {
@@ -429,6 +460,11 @@
 
     function renderizarLista() {
       const container = document.getElementById('listaContainer');
+      if (produtos.length === 0) {
+        container.innerHTML = '<p style="font-size: 0.9rem; color: #7f8c8d; margin-bottom: 15px;">Sua lista está vazia.</p>';
+        document.getElementById('totalCarrinho').innerText = 'R$ 0,00';
+        return;
+      }
       container.innerHTML = '';
 
       const setoresObj = {};
@@ -470,57 +506,117 @@
     function salvarKpi() {
       let total = produtos.reduce((acc, p) => acc + (p.qtd * p.preco), 0);
       document.getElementById('totalCarrinho').innerText = 'R$ ' + total.toFixed(2).replace('.', ',');
-      renderizarComparativo(total);
     }
 
-    function renderizarComparativo(totalAtual) {
-      const compContainer = document.getElementById('comparativoContainer');
-      if(totalAtual <= 0) {
-        compContainer.innerHTML = `<p style="font-size: 0.9rem; color: #7f8c8d;">Insira preços nos produtos para ver a simulação por estabelecimento.</p>`;
+    function fecharCompra() {
+      const estabInput = document.getElementById('estabInput');
+      const nomeEstab = estabInput.value.trim() || 'Estabelecimento Local';
+      let total = produtos.reduce((acc, p) => acc + (p.qtd * p.preco), 0);
+
+      if (total <= 0) {
+        alert('Adicione produtos e preços antes de fechar a compra.');
         return;
       }
 
-      let html = '';
-      mercados.forEach((m, index) => {
-        // Simulação realista de variação de preço por mercado com base no total
-        let fator = 1 + ((index * 0.05) - 0.02); 
-        let subTotal = totalAtual * fator;
+      let novaCompra = {
+        id: Date.now(),
+        estabelecimento: nomeEstab,
+        total: total,
+        itens: [...produtos],
+        data: new Date().toLocaleDateString()
+      };
+
+      historicoCompras.unshift(novaCompra);
+      localStorage.setItem('stokfy_historico', JSON.stringify(historicoCompras));
+
+      ultimaComparacao = novaCompra;
+      localStorage.setItem('stokfy_ultima_comp', JSON.stringify(ultimaComparacao));
+
+      estabInput.value = '';
+      produtos = [];
+      salvarDados();
+      renderizarHistorico();
+      renderizarComparativoUltima();
+
+      // Alternar automaticamente para a aba Comparativo para o usuário ver o resultado
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('tab-comparativo').classList.add('active');
+      document.querySelectorAll('.nav-item')[1].classList.add('active');
+    }
+
+    function renderizarComparativoUltima() {
+      const container = document.getElementById('comparativoUltimaContainer');
+      if (!ultimaComparacao) {
+        container.innerHTML = '<p style="font-size: 0.9rem; color: #7f8c8d;">Nenhuma compra registada recentemente para comparativo.</p>';
+        return;
+      }
+
+      let html = `
+        <div style="background: var(--bg-color); padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--border-color);">
+          <strong>Estabelecimento:</strong> ${ultimaComparacao.estabelecimento}<br>
+          <strong>Total Atual:</strong> R$ ${ultimaComparacao.total.toFixed(2).replace('.', ',')}<br>
+        </div>
+        <div style="font-weight: bold; margin-bottom: 10px;">Itens da Compra:</div>
+      `;
+
+      ultimaComparacao.itens.forEach(item => {
         html += `
-          <div class="produto-item" style="justify-content: space-between; padding: 12px;">
-            <span>🏪 ${m}</span>
-            <strong style="color: var(--primary-color);">R$ ${subTotal.toFixed(2).replace('.', ',')}</strong>
+          <div class="produto-item">
+            <span class="produto-nome">${item.nome} (${item.qtd}x)</span>
+            <strong style="color: var(--primary-color);">R$ ${(item.qtd * item.preco).toFixed(2).replace('.', ',')}</strong>
           </div>
         `;
       });
-      compContainer.innerHTML = html;
+      container.innerHTML = html;
     }
 
-    function adicionarMercado() {
-      const input = document.getElementById('mercadoInput');
-      const nome = input.value.trim();
-      if(!nome) return;
-      mercados.push(nome);
-      input.value = '';
-      salvarMercados();
-    }
+    function renderizarHistorico() {
+      const container = document.getElementById('historicoContainer');
+      const totalGeralEl = document.getElementById('totalGeralHistorico');
 
-    function removerMercado(index) {
-      mercados.splice(index, 1);
-      salvarMercados();
-    }
+      let somaGeral = historicoCompras.reduce((acc, c) => acc + c.total, 0);
+      totalGeralEl.innerText = 'R$ ' + somaGeral.toFixed(2).replace('.', ',');
 
-    function renderizarMercados() {
-      const mContainer = document.getElementById('mercadoContainer');
-      mContainer.innerHTML = '';
-      mercados.forEach((m, index) => {
+      if (historicoCompras.length === 0) {
+        container.innerHTML = '<p style="font-size: 0.9rem; color: #7f8c8d;">Nenhum registo de compra efetuado ainda.</p>';
+        return;
+      }
+
+      container.innerHTML = '';
+      historicoCompras.forEach((compra, index) => {
         let div = document.createElement('div');
         div.className = 'produto-item';
+        div.style.flexDirection = 'column';
+        div.style.alignItems = 'stretch';
         div.innerHTML = `
-          <span class="produto-nome">🏪 ${m}</span>
-          <button class="btn-delete" onclick="removerMercado(${index})">✕</button>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <strong>${compra.estabelecimento}</strong><br>
+              <small style="color: #7f8c8d;">${compra.data}</small>
+            </div>
+            <div style="text-align: right;">
+              <span style="color: var(--primary-color); font-weight: bold;">R$ ${compra.total.toFixed(2).replace('.', ',')}</span><br>
+              <button class="btn-outline" style="padding: 2px 6px; font-size: 0.75rem; margin-top: 4px;" onclick="removerHistorico(${index})">Remover</button>
+            </div>
+          </div>
         `;
-        mContainer.appendChild(div);
+        container.appendChild(div);
       });
+    }
+
+    function removerHistorico(index) {
+      historicoCompras.splice(index, 1);
+      localStorage.setItem('stokfy_historico', JSON.stringify(historicoCompras));
+      renderizarHistorico();
+    }
+
+    function limparHistorico() {
+      if(confirm('Deseja limpar todo o histórico de compras?')) {
+        historicoCompras = [];
+        localStorage.removeItem('stokfy_historico');
+        renderizarHistorico();
+      }
     }
 
     function mudarAba(abaId, elementoBtn) {
@@ -541,9 +637,10 @@
 
     window.onload = () => {
       const savedTheme = localStorage.getItem('stokfy_theme') || 'light';
-      body.setAttribute('data-theme', savedTheme);
+      document.body.setAttribute('data-theme', savedTheme);
       renderizarLista();
-      renderizarMercados();
+      renderizarHistorico();
+      renderizarComparativoUltima();
     };
 
     if ('serviceWorker' in navigator) {
