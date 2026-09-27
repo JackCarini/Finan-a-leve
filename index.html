@@ -47,7 +47,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 15px 20px;
+      padding: 12px 20px;
       background-color: var(--card-bg);
       border-bottom: 1px solid var(--border-color);
     }
@@ -55,27 +55,42 @@
     .logo-area {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
     .logo-area h1 {
-      font-size: 1.5rem;
+      font-size: 1.4rem;
       color: var(--primary-color);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .teto-badge {
+      font-size: 0.75rem;
+      background-color: rgba(39, 174, 96, 0.1);
+      color: var(--primary-color);
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-weight: bold;
     }
 
     .theme-toggle {
       background: none;
       border: 1px solid var(--border-color);
       color: var(--text-color);
-      padding: 6px 12px;
-      border-radius: 20px;
+      padding: 5px 10px;
+      border-radius: 15px;
       cursor: pointer;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
     }
 
     .container {
       max-width: 600px;
-      margin: 20px auto;
+      margin: 15px auto;
       padding: 0 15px;
     }
 
@@ -87,27 +102,52 @@
       display: block !important;
     }
 
+    /* Barra de Ações Rápidas (Opção 7) */
+    .quick-actions {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 15px;
+      overflow-x: auto;
+      padding-bottom: 5px;
+    }
+
+    .quick-pill {
+      background-color: var(--card-bg);
+      border: 1px solid var(--primary-color);
+      color: var(--primary-color);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    .quick-pill:hover {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
     .card {
       background-color: var(--card-bg);
       border: 1px solid var(--border-color);
       border-radius: 12px;
-      padding: 20px;
+      padding: 18px;
       box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
 
     .card-title {
-      font-size: 1.2rem;
+      font-size: 1.15rem;
       margin-bottom: 10px;
       display: flex;
       align-items: center;
       gap: 8px;
-    }
-
-    .actions-top {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
     }
 
     .btn {
@@ -166,7 +206,7 @@
     }
 
     .setor-title {
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       font-weight: bold;
       color: var(--primary-color);
       margin-bottom: 10px;
@@ -302,18 +342,28 @@
       <span>🛒</span>
       <h1>Stokfy</h1>
     </div>
-    <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()">🌓 Tema</button>
+    <div class="header-right">
+      <div id="tetoHeaderBadge" class="teto-badge">Sem Teto</div>
+      <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()">🌓 Tema</button>
+    </div>
   </header>
 
   <div class="container">
     <!-- ABA 1: INÍCIO -->
     <div id="tab-inicio" class="tab-content active">
+      
+      <!-- BARRA DE AÇÕES RÁPIDAS (Opção 7) -->
+      <div class="quick-actions">
+        <button class="quick-pill" onclick="reutilizarUltima()">
+          <span>📥</span> Reutilizar Última
+        </button>
+        <button class="quick-pill" onclick="definirTeto()">
+          <span>🎯</span> Definir Teto
+        </button>
+      </div>
+
       <div class="card">
         <div class="card-title">🛒 Lista de Compras</div>
-        <div class="actions-top">
-          <button class="btn-outline" onclick="reutilizarUltima()">Reutilizar Última</button>
-          <button class="btn-outline" onclick="definirTeto()">Definir Teto</button>
-        </div>
         <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 5px;" id="tetoInfo">Nenhum teto orçamentário definido.</p>
         <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 15px;">Itens agrupados automaticamente por setor para otimizar o seu percurso.</p>
 
@@ -504,14 +554,22 @@
 
     function atualizarTetoInfo(total) {
       const tetoEl = document.getElementById('tetoInfo');
+      const badgeEl = document.getElementById('tetoHeaderBadge');
+
       if (tetoOrcamento > 0) {
+        badgeEl.innerText = `Teto: R$ ${tetoOrcamento.toFixed(2).replace('.', ',')}`;
         if (total > tetoOrcamento) {
           tetoEl.innerHTML = `<span style="color: var(--danger-color); font-weight: bold;">⚠️ Teto ultrapassado! (Limite: R$ ${tetoOrcamento.toFixed(2).replace('.', ',')})</span>`;
+          badgeEl.style.backgroundColor = 'rgba(231, 76, 60, 0.1)';
+          badgeEl.style.color = 'var(--danger-color)';
         } else {
           tetoEl.innerHTML = `🎯 Teto Orçamentário: R$ ${tetoOrcamento.toFixed(2).replace('.', ',')} (Restam R$ ${(tetoOrcamento - total).toFixed(2).replace('.', ',')})`;
+          badgeEl.style.backgroundColor = 'rgba(39, 174, 96, 0.1)';
+          badgeEl.style.color = 'var(--primary-color)';
         }
       } else {
-        tetoEl.innerHTML = 'Nenhum teto orçamentário definido. Clique em "Definir Teto".';
+        tetoEl.innerHTML = 'Nenhum teto orçamentário definido. Clique em "Definir Teto" acima.';
+        badgeEl.innerText = 'Sem Teto';
       }
     }
 
