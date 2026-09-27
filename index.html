@@ -459,10 +459,7 @@
         const preco = parseFloat(valor.replace(',', '.')) || 0;
         carrinho[index].preco = preco;
         
-        if(preco > 0) {
-            historicoPrecos[carrinho[index].nome.toLowerCase()] = preco;
-            localStorage.setItem('stokfy_historico', JSON.stringify(historicoPrecos));
-        }
+        // Aqui apenas atualiza o carrinho local. O histórico global só muda ao registar a compra.
         localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
         atualizarTotalECarrossel();
     }
@@ -558,9 +555,11 @@
         let itensComparativo = [];
         let totalAnteriorCalculado = 0;
 
+        // 1. PRIMEIRO calcula o comparativo usando o preço ANTERIOR guardado no histórico
         carrinho.forEach(item => {
             const nomeLower = item.nome.toLowerCase();
-            const precoAnterior = historicoPrecos[nomeLower] || item.preco;
+            // Se já houver um preço antigo guardado, usa ele. Senão, assume o preço atual.
+            const precoAnterior = historicoPrecos[nomeLower] !== undefined ? historicoPrecos[nomeLower] : item.preco;
             totalAnteriorCalculado += (precoAnterior * item.qtd);
 
             itensComparativo.push({
@@ -579,6 +578,14 @@
             itens: itensComparativo
         };
         localStorage.setItem('stokfy_ultimo_comparativo', JSON.stringify(ultimoComparativo));
+
+        // 2. DEPOIS atualiza o histórico global com os novos preços pagos nesta compra
+        carrinho.forEach(item => {
+            if(item.preco > 0) {
+                historicoPrecos[item.nome.toLowerCase()] = item.preco;
+            }
+        });
+        localStorage.setItem('stokfy_historico', JSON.stringify(historicoPrecos));
         
         document.getElementById('nomeSupermercado').value = '';
         carrinho = [];
