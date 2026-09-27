@@ -166,7 +166,7 @@
 
         <div class="row">
             <div>
-                <label class="muted">Preço Unitário (R$)</label>
+                <label class="muted">Preço Unitário (Opcional)</label>
                 <input type="number" id="produtoPreco" placeholder="0.00" step="0.01">
             </div>
             <div>
@@ -224,24 +224,26 @@
 
     function adicionarProduto() {
         const nome = document.getElementById('produtoNome').value.trim();
-        const preco = parseFloat(document.getElementById('produtoPreco').value);
+        const precoInput = document.getElementById('produtoPreco').value.trim();
+        const preco = precoInput === '' ? 0 : parseFloat(precoInput);
         const qtd = parseInt(document.getElementById('produtoQtd').value) || 1;
 
-        if(!nome || isNaN(preco)) return alert('Preencha o nome e o preço corretamente.');
+        if(!nome) return alert('Preencha o nome do produto.');
 
-        // Verifica se o produto já existe no carrinho para somar a quantidade
         const itemExistente = carrinho.find(item => item.nome.toLowerCase() === nome.toLowerCase());
         if(itemExistente) {
             itemExistente.qtd += qtd;
-            itemExistente.preco = preco; // Atualiza com o preço mais recente
+            if(preco > 0) itemExistente.preco = preco;
         } else {
             carrinho.push({ nome, preco, qtd });
         }
 
-        historicoPrecos[nome.toLowerCase()] = preco;
+        if(preco > 0) {
+            historicoPrecos[nome.toLowerCase()] = preco;
+            localStorage.setItem('stokfy_historico', JSON.stringify(historicoPrecos));
+        }
 
         localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
-        localStorage.setItem('stokfy_historico', JSON.stringify(historicoPrecos));
 
         document.getElementById('produtoNome').value = '';
         document.getElementById('produtoPreco').value = '';
@@ -280,11 +282,16 @@
         carrinho.forEach((item, index) => {
             const subtotal = item.preco * item.qtd;
             total += subtotal;
+            
+            const infoPreco = item.preco > 0 
+                ? `R$ ${item.preco.toFixed(2)} un | Subtotal: R$ ${subtotal.toFixed(2)}`
+                : `Preço não definido`;
+
             container.innerHTML += `
                 <div class="list-item">
                     <div class="item-info">
                         <strong>${item.nome}</strong><br>
-                        <span class="muted">R$ ${item.preco.toFixed(2)} un | Subtotal: R$ ${subtotal.toFixed(2)}</span>
+                        <span class="muted">${infoPreco}</span>
                     </div>
                     <div class="qty-controls">
                         <button onclick="alterarQtd(${index}, -1)">-</button>
