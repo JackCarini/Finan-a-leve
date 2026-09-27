@@ -1,639 +1,209 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stokfy</title>
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/jpeg" href="icon.jpg">
-    <link rel="apple-touch-icon" href="icon.jpg">
+    <link rel="manifest5" href="./manifest.json">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        :root {
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #2c3e50;
+            --text-muted: #6c757d;
+            --border-color: #dee2e6;
+            --primary-color: #27ae60;
+            --danger-color: #e74c3c;
         }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #f1f1f1;
+            --text-muted: #aaa;
+            --border-color: #333;
+            --primary-color: #2ecc71;
+            --danger-color: #e74c3c;
+        }
+
         body {
-            background-color: #f4f6f8;
-            color: #333;
-            padding: 15px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 16px;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .container {
             max-width: 600px;
             margin: 0 auto;
-            padding-bottom: 120px; 
         }
-        h2, h3 {
-            color: #2c3e50;
-        }
-        .card {
-            background: #fff;
-            padding: 20px;
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            margin-bottom: 15px;
-        }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
-        .market-card {
+
+        header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #fff;
-            padding: 18px;
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
-        .btn-action-sm {
-            background: #f1f2f6;
-            color: #2c3e50;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 10px;
-            font-weight: bold;
+
+        h1 { font-size: 1.5rem; margin: 0; }
+
+        .theme-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 6px 12px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 0.85rem;
         }
-        input, select {
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        input, button {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             margin-top: 8px;
             margin-bottom: 12px;
-            border: 1px solid #dcdde1;
-            border-radius: 10px;
-            font-size: 1rem;
-            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-sizing: border-box;
+            background: var(--card-bg);
+            color: var(--text-color);
         }
-        button.primary-btn {
-            background-color: #27ae60;
+
+        button.primary {
+            background-color: var(--primary-color);
             color: white;
             border: none;
-            padding: 12px;
-            border-radius: 10px;
             font-weight: bold;
-            width: 100%;
             cursor: pointer;
-            font-size: 1rem;
         }
-        button.primary-btn:hover {
-            background-color: #219653;
-        }
-        button.secondary-btn {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 10px;
-            font-weight: bold;
-            width: 100%;
-            cursor: pointer;
-            font-size: 0.9rem;
-            margin-top: 8px;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
-        }
-        button.secondary-btn:hover {
-            background-color: #2980b9;
-        }
-        button.danger-outline-btn {
-            background: transparent;
-            color: #e74c3c;
-            border: 1px solid #e74c3c;
-            padding: 8px 12px;
-            border-radius: 10px;
-            font-weight: bold;
-            width: 100%;
-            cursor: pointer;
-            font-size: 0.85rem;
-            margin-top: 12px;
-        }
-        button.danger-outline-btn:hover {
-            background: #fdf2f2;
-        }
-        ul {
-            list-style: none;
-            margin-top: 10px;
-        }
-        li {
+
+        .list-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 8px;
-            border-bottom: 1px solid #f1f2f6;
-            font-size: 0.95rem;
-        }
-        .delete-btn {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        .badge-up { color: #e74c3c; font-weight: bold; }
-        .badge-down { color: #27ae60; font-weight: bold; }
-        .badge-equal { color: #7f8c8d; }
-
-        .report-box {
-            background: #f1f8f5;
-            border: 1px solid #c8e6d8;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        .report-value {
-            font-size: 1.6rem;
-            font-weight: bold;
-            color: #27ae60;
-            margin-top: 5px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
         }
 
-        .shopping-item-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-        .item-checked {
-            text-decoration: line-through;
-            color: #95a5a6;
-        }
-        .qty-control {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            background: #f1f2f6;
-            padding: 2px 6px;
-            border-radius: 8px;
-        }
-        .qty-btn {
-            background: #fff;
-            border: 1px solid #dcdde1;
-            border-radius: 4px;
-            width: 22px;
-            height: 22px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .input-preco-lista {
-            width: 75px;
-            padding: 4px 6px;
-            text-align: right;
-            border: 1px solid #dcdde1;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            background: #fff;
-            margin: 0;
-        }
-
-        .alert-box {
-            margin-top: 12px;
-            padding: 10px 14px;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-align: center;
-            display: none;
-        }
-        .alert-safe {
-            background: #e8f8f5;
-            color: #117a65;
-            border: 1px solid #a3e4d7;
-        }
-        .alert-danger {
-            background: #f9ebea;
-            color: #c0392b;
-            border: 1px solid #f5b7b1;
-        }
-
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #ffffff;
-            display: flex;
-            justify-content: space-around;
-            padding: 12px 0;
-            padding-bottom: calc(12px + env(safe-area-inset-bottom, 20px));
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
-            z-index: 9999;
-            max-width: 600px;
-            margin: 0 auto;
-            border-top: 1px solid #eee;
-        }
-        .nav-item {
-            text-align: center;
-            color: #7f8c8d;
-            cursor: pointer;
-            font-size: 0.75rem;
-            font-weight: 600;
-            background: none;
-            border: none;
-            flex: 1;
-        }
-        .nav-item.active {
-            color: #27ae60;
-        }
-        .nav-item div {
-            font-size: 1.3rem;
-            margin-bottom: 2px;
-        }
+        .muted { color: var(--text-muted); font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
-    <!-- ABA 1: INÍCIO -->
-    <div id="tab-inicio" class="tab-content active">
-        <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                <h3 style="margin: 0;">🛒 Lista de Compras</h3>
-                <span style="font-size: 0.85rem; color: #3498db; cursor: pointer; font-weight: bold;" onclick="editarTetoCompras()">🎯 Definir Teto (R$ <span id="txtTetoValor">200</span>) ✏️</span>
-            </div>
-            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 12px;">
-                Acompanhe o total do carrinho em tempo real contra o seu teto planejado.
-            </p>
-            
-            <div class="shopping-item-row">
-                <input type="text" id="inputShoppingNome" placeholder="Produto (ex: Arroz)" style="margin:0; flex: 2;">
-                <input type="number" id="inputShoppingValor" placeholder="Preço opcional (R$)" step="0.01" style="margin:0; flex: 1;">
-                <button class="primary-btn" onclick="adicionarItemShopping()" style="margin:0; width: auto; padding: 12px 16px;">+</button>
-            </div>
+<div class="container">
+    <header>
+        <h1>🛒 Stokfy</h1>
+        <button class="theme-btn" onclick="toggleTheme()">🌓 Tema</button>
+    </header>
 
-            <ul id="listaShopping" style="margin-top: 15px;"></ul>
+    <div class="card">
+        <h3>Adicionar à Lista</h3>
+        <label class="muted">Produto</label>
+        <input type="text" id="produtoNome" placeholder="Ex: Arroz" oninput="sugerirPreco()">
 
-            <div style="margin-top: 15px; padding-top: 12px; border-top: 2px dashed #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
-                <strong style="color: #2c3e50; font-size: 1rem;">Total Previsto no Carrinho:</strong>
-                <span id="txtTotalShopping" style="font-size: 1.2rem; font-weight: bold; color: #27ae60;">R$ 0,00</span>
-            </div>
+        <label class="muted">Preço Unitário (R$)</label>
+        <input type="number" id="produtoPreco" placeholder="0.00" step="0.01">
 
-            <div id="alertaTetoCompras" class="alert-box"></div>
-        </div>
-
-        <div class="market-card">
-            <div>
-                <strong>Supermercado & Relatório</strong>
-                <div style="font-size: 0.85rem; color: #7f8c8d; margin-top: 2px;" id="txtTotalMercadoResumo">Total Alimentação: R$ 0,00</div>
-            </div>
-            <button class="btn-action-sm" onclick="mudarAba('mercado')">Ver Relatório</button>
-        </div>
+        <button class="primary" onclick="adicionarProduto()">Adicionar Produto</button>
     </div>
 
-    <!-- ABA 2: MERCADO & RELATÓRIO DE ALIMENTAÇÃO -->
-    <div id="tab-mercado" class="tab-content">
-        <!-- Relatório Consolidado & Custo por Mercado -->
-        <div class="card">
-            <h3>📊 Relatório de Gastos por Estabelecimento</h3>
-            <p style="font-size: 0.85rem; color: #64748b; margin-top: 4px; margin-bottom: 15px;">
-                Descubra qual mercado é mais barato ou mais caro com base nas suas compras cadastradas.
-            </p>
-            
-            <div class="report-box">
-                <div style="font-size: 0.85rem; color: #555; font-weight: 600;">TOTAL GERAL EM ALIMENTAÇÃO</div>
-                <div class="report-value" id="txtTotalAlimentacaoConsolidado">R$ 0,00</div>
-            </div>
-
-            <h4 style="font-size: 0.95rem; color: #2c3e50; margin-top: 15px; margin-bottom: 5px;">Comparativo entre Redes:</h4>
-            <ul id="listaRankingMercados" style="margin-top: 5px;"></ul>
-            
-            <button class="danger-outline-btn" onclick="limparHistoricoCompras()">🗑️ Limpar Histórico do Relatório</button>
-        </div>
-
-        <!-- Bloco para registrar compra concluída vinculada a um mercado -->
-        <div class="card">
-            <h3>💾 Fechar e Salvar Compra Atual</h3>
-            <p style="font-size: 0.85rem; color: #64748b; margin-top: 4px; margin-bottom: 10px;">
-                Informe em qual supermercado realizou esta compra para alimentar o relatório comparativo.
-            </p>
-            <input type="text" id="inputLocalCompra" placeholder="Nome do Supermercado (ex: Supermercado Vencedor)">
-            <button class="primary-btn" onclick="salvarHistoricoCompra()" style="margin-top: 4px;">Registar Compra no Relatório</button>
-        </div>
-
-        <!-- Bloco de Busca Inteligente de Encarte por Nome e Cidade -->
-        <div class="card">
-            <h3>🔍 Buscar Encarte do Supermercado</h3>
-            <p style="font-size: 0.85rem; color: #64748b; margin-top: 4px; margin-bottom: 10px;">
-                Informe o mercado e a cidade para gerar o atalho de ofertas.
-            </p>
-            <input type="text" id="inputNomeMercado" placeholder="Nome do Supermercado (ex: Supermercado Vargem)">
-            <input type="text" id="inputCidadeMercado" placeholder="Cidade (ex: Vargem Bonita SC)">
-            <button class="primary-btn" onclick="salvarBuscaEncarte()" style="margin-top: 4px; margin-bottom: 8px;">Salvar Preferência</button>
-            
-            <div id="containerBotaoEncarte" style="display:none; margin-top: 10px;">
-                <a id="linkAcessoEncarte" href="#" onclick="abrirEncarte(event)" class="secondary-btn" style="text-decoration: none;">🛒 Ver Encarte / Ofertas Online</a>
-            </div>
-        </div>
+    <div class="card">
+        <h3>Carrinho Atual</h3>
+        <div id="listaCarrinho">Sua lista está vazia.</div>
+        <p><strong>Total: </strong><span id="totalCarrinho">R$ 0,00</span></p>
     </div>
+</div>
 
-    <!-- BARRA DE NAVEGAÇÃO INFERIOR -->
-    <nav class="bottom-nav">
-        <button class="nav-item active" onclick="mudarAba('inicio', this)">
-            <div>🏠</div>Início
-        </button>
-        <button class="nav-item" onclick="mudarAba('mercado', this)">
-            <div>🛒</div>Mercado
-        </button>
-    </nav>
+<script>
+    let carrinho = JSON.parse(localStorage.getItem('stokfy_carrinho')) || [];
+    let historicoPrecos = JSON.parse(localStorage.getItem('stokfy_historico')) || {};
 
-    <script>
-        let shoppingItems = JSON.parse(localStorage.getItem('app_shopping_v16')) || [];
-        let historicoCompras = JSON.parse(localStorage.getItem('app_historico_compras_v16')) || [];
-        let tetoCompras = parseFloat(localStorage.getItem('app_teto_compras_v16')) || 200;
-        
-        let nomeMercadoSalvo = localStorage.getItem('app_nome_mercado_v16') || '';
-        let cidadeMercadoSalva = localStorage.getItem('app_cidade_mercado_v16') || '';
+    function toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('stokfy_theme', newTheme);
+    }
 
-        function mudarAba(nomeAba, elBtn) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.getElementById('tab-' + nomeAba).classList.add('active');
+    // Carregar tema salvo
+    if(localStorage.getItem('stokfy_theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }
 
-            if(elBtn) {
-                document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-                elBtn.classList.add('active');
-            } else {
-                const botoes = document.querySelectorAll('.nav-item');
-                document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-                if(nomeAba === 'inicio') botoes[0].classList.add('active');
-                if(nomeAba === 'mercado') botoes[1].classList.add('active');
-            }
-            window.scrollTo(0, 0);
+    function sugerirPreco() {
+        const nome = document.getElementById('produtoNome').value.trim().toLowerCase();
+        if(historicoPrecos[nome]) {
+            document.getElementById('produtoPreco').value = historicoPrecos[nome];
+        }
+    }
+
+    function adicionarProduto() {
+        const nome = document.getElementById('produtoNome').value.trim();
+        const preco = parseFloat(document.getElementById('produtoPreco').value);
+
+        if(!nome || isNaN(preco)) return alert('Preencha o nome e o preço corretamente.');
+
+        carrinho.push({ nome, preco });
+        historicoPrecos[nome.toLowerCase()] = preco; // Salva no histórico inteligente
+
+        localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
+        localStorage.setItem('stokfy_historico', JSON.stringify(historicoPrecos));
+
+        document.getElementById('produtoNome').value = '';
+        document.getElementById('produtoPreco').value = '';
+        renderizarCarrinho();
+    }
+
+    function renderizarCarrinho() {
+        const container = document.getElementById('listaCarrinho');
+        let total = 0;
+
+        if(carrinho.length === 0) {
+            container.innerHTML = 'Sua lista está vazia.';
+            document.getElementById('totalCarrinho').innerText = 'R$ 0,00';
+            return;
         }
 
-        function salvarBuscaEncarte() {
-            const nomeM = document.getElementById('inputNomeMercado').value.trim();
-            const cidadeM = document.getElementById('inputCidadeMercado').value.trim();
-            
-            if(!nomeM || !cidadeM) {
-                alert('Preencha o nome do supermercado e a cidade.');
-                return;
-            }
+        container.innerHTML = '';
+        carrinho.forEach((item, index) => {
+            total += item.preco;
+            container.innerHTML += `
+                <div class="list-item">
+                    <span>${item.nome} - R$ ${item.preco.toFixed(2)}</span>
+                    <button onclick="removerItem(${index})" style="width:auto; padding:4px 8px; background:var(--danger-color); color:white; border:none; border-radius:4px;">X</button>
+                </div>
+            `;
+        });
 
-            nomeMercadoSalvo = nomeM;
-            cidadeMercadoSalva = cidadeM;
+        document.getElementById('totalCarrinho').innerText = `R$ ${total.toFixed(2)}`;
+    }
 
-            localStorage.setItem('app_nome_mercado_v16', nomeMercadoSalvo);
-            localStorage.setItem('app_cidade_mercado_v16', cidadeMercadoSalva);
+    function removerItem(index) {
+        carrinho.splice(index, 1);
+        localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
+        renderizarCarrinho();
+    }
 
-            atualizarInterfaceEncarteBusca();
-            alert('Preferência de mercado guardada com sucesso!');
-        }
+    renderizarCarrinho();
+</script>
 
-        function atualizarInterfaceEncarteBusca() {
-            const container = document.getElementById('containerBotaoEncarte');
-            const inputNome = document.getElementById('inputNomeMercado');
-            const inputCidade = document.getElementById('inputCidadeMercado');
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./pwabuilder-sw.js', { scope: './' });
+        });
+    }
+</script>
 
-            if(nomeMercadoSalvo && cidadeMercadoSalva) {
-                inputNome.value = nomeMercadoSalvo;
-                inputCidade.value = cidadeMercadoSalva;
-                container.style.display = 'block';
-            } else {
-                container.style.display = 'none';
-            }
-        }
-
-        function abrirEncarte(event) {
-            event.preventDefault();
-            if(nomeMercadoSalvo && cidadeMercadoSalva) {
-                const termoBusca = encodeURIComponent(`encarte folheto ofertas ${nomeMercadoSalvo} ${cidadeMercadoSalva}`);
-                const url = `https://www.google.com/search?q=${termoBusca}`;
-                window.open(url, '_system');
-            }
-        }
-
-        function editarTetoCompras() {
-            let novoTeto = prompt('Defina o valor teto para esta ida ao mercado (R$):', tetoCompras);
-            if(novoTeto && !isNaN(novoTeto)) {
-                tetoCompras = parseFloat(novoTeto);
-                atualizarApp();
-            }
-        }
-
-        function adicionarItemShopping() {
-            const nome = document.getElementById('inputShoppingNome').value.trim();
-            const valorInput = parseFloat(document.getElementById('inputShoppingValor').value);
-
-            if(!nome) {
-                alert('Insira pelo menos o nome do produto.');
-                return;
-            }
-
-            const valorFinal = (isNaN(valorInput) || valorInput < 0) ? 0 : valorInput;
-
-            shoppingItems.push({ nome: nome, valor: valorFinal, qtd: 1, checked: false });
-            document.getElementById('inputShoppingNome').value = '';
-            document.getElementById('inputShoppingValor').value = '';
-            atualizarApp();
-        }
-
-        function alterarQtdShopping(index, delta) {
-            shoppingItems[index].qtd += delta;
-            if (shoppingItems[index].qtd < 1) {
-                shoppingItems[index].qtd = 1;
-            }
-            atualizarApp();
-        }
-
-        function atualizarPrecoShopping(index, novoValor) {
-            let val = parseFloat(novoValor);
-            if (!isNaN(val) && val >= 0) {
-                shoppingItems[index].valor = val;
-                atualizarApp();
-            } else {
-                shoppingItems[index].valor = 0;
-                atualizarApp();
-            }
-        }
-
-        function alternarCheckShopping(index) {
-            shoppingItems[index].checked = !shoppingItems[index].checked;
-            atualizarApp();
-        }
-
-        function removerItemShopping(index) {
-            shoppingItems.splice(index, 1);
-            atualizarApp();
-        }
-
-        function calcularTotalCarrinhoAtual() {
-            let total = 0;
-            shoppingItems.forEach(item => {
-                total += item.valor * item.qtd;
-            });
-            return total;
-        }
-
-        function salvarHistoricoCompra() {
-            const local = document.getElementById('inputLocalCompra').value.trim();
-            const totalCompra = calcularTotalCarrinhoAtual();
-
-            if(!local) {
-                alert('Informe o nome do supermercado onde realizou a compra.');
-                return;
-            }
-
-            if(totalCompra <= 0) {
-                alert('A lista de compras atual está com valor zerado.');
-                return;
-            }
-
-            historicoCompras.push({
-                mercado: local,
-                valor: totalCompra,
-                data: new Date().toLocaleDateString('pt-BR')
-            });
-
-            document.getElementById('inputLocalCompra').value = '';
-            alert(`Compra de R$ ${totalCompra.toFixed(2)} registada com sucesso no relatório do ${local}!`);
-            atualizarApp();
-        }
-
-        function limparHistoricoCompras() {
-            if(confirm('Tem certeza que deseja apagar todo o histórico de compras e limpar o relatório?')) {
-                historicoCompras = [];
-                atualizarApp();
-            }
-        }
-
-        function renderizarShopping() {
-            const listaS = document.getElementById('listaShopping');
-            listaS.innerHTML = '';
-
-            document.getElementById('txtTetoValor').innerText = tetoCompras.toFixed(0);
-
-            if(shoppingItems.length === 0) {
-                listaS.innerHTML = '<li style="color: #95a5a6; text-align: center; display: block; padding: 10px; font-size: 0.9rem;">Sua lista de compras está vazia.</li>';
-                document.getElementById('txtTotalShopping').innerText = 'R$ 0,00';
-                document.getElementById('alertaTetoCompras').style.display = 'none';
-                return;
-            }
-
-            let totalCarrinho = 0;
-
-            shoppingItems.forEach((item, idx) => {
-                let subtotal = item.valor * item.qtd;
-                totalCarrinho += subtotal;
-
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
-                        <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="alternarCheckShopping(${idx})" style="width: 20px; height: 20px; margin: 0; cursor: pointer; flex-shrink: 0;">
-                        <span class="${item.checked ? 'item-checked' : ''}" style="font-weight: 500; word-break: break-word;">${item.nome}</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                        <div class="qty-control">
-                            <button class="qty-btn" onclick="alterarQtdShopping(${idx}, -1)">-</button>
-                            <span style="font-weight: bold; min-width: 16px; text-align: center;">${item.qtd}</span>
-                            <button class="qty-btn" onclick="alterarQtdShopping(${idx}, 1)">+</button>
-                        </div>
-                        <input type="number" step="0.01" class="input-preco-lista ${item.checked ? 'item-checked' : ''}" value="${item.valor.toFixed(2)}" onchange="atualizarPrecoShopping(${idx}, this.value)">
-                        <button class="delete-btn" onclick="removerItemShopping(${idx})">X</button>
-                    </div>
-                `;
-                listaS.appendChild(li);
-            });
-
-            document.getElementById('txtTotalShopping').innerText = `R$ ${totalCarrinho.toFixed(2)}`;
-
-            const alertaEl = document.getElementById('alertaTetoCompras');
-            alertaEl.style.display = 'block';
-
-            if (totalCarrinho > tetoCompras) {
-                let diferenca = totalCarrinho - tetoCompras;
-                alertaEl.className = 'alert-box alert-danger';
-                alertaEl.innerHTML = `🚨 Atenção! O carrinho ultrapassou o teto em R$ ${diferenca.toFixed(2)}`;
-            } else {
-                let restante = tetoCompras - totalCarrinho;
-                alertaEl.className = 'alert-box alert-safe';
-                alertaEl.innerHTML = `✅ Dentro do teto! Restam R$ ${restante.toFixed(2)} do limite planejado.`;
-            }
-        }
-
-        function renderizarRelatorioMercados() {
-            const listaRanking = document.getElementById('listaRankingMercados');
-            listaRanking.innerHTML = '';
-
-            if (historicoCompras.length === 0) {
-                listaRanking.innerHTML = '<li style="color: #95a5a6; text-align: center; display: block; padding: 10px; font-size: 0.85rem;">Nenhuma compra registada ainda. Feche uma compra para ver o comparativo.</li>';
-                document.getElementById('txtTotalAlimentacaoConsolidado').innerText = 'R$ 0,00';
-                document.getElementById('txtTotalMercadoResumo').innerText = 'Total Alimentação: R$ 0,00';
-                return;
-            }
-
-            let gastosPorMercado = {};
-            let totalGeralAlimentacao = 0;
-
-            historicoCompras.forEach(h => {
-                totalGeralAlimentacao += h.valor;
-                if (!gastosPorMercado[h.mercado]) {
-                    gastosPorMercado[h.mercado] = { total: 0, visitas: 0 };
-                }
-                gastosPorMercado[h.mercado].total += h.valor;
-                gastosPorMercado[h.mercado].visitas += 1;
-            });
-
-            document.getElementById('txtTotalAlimentacaoConsolidado').innerText = `R$ ${totalGeralAlimentacao.toFixed(2)}`;
-            document.getElementById('txtTotalMercadoResumo').innerText = `Total Alimentação: R$ ${totalGeralAlimentacao.toFixed(2)}`;
-
-            let mercadosOrdenados = Object.keys(gastosPorMercado).map(nome => {
-                return {
-                    nome: nome,
-                    total: gastosPorMercado[nome].total,
-                    media: gastosPorMercado[nome].total / gastosPorMercado[nome].visitas,
-                    visitas: gastosPorMercado[nome].visitas
-                };
-            }).sort((a, b) => a.media - b.media);
-
-            mercadosOrdenados.forEach((m, index) => {
-                let badgeLabel = '';
-                if (index === 0 && mercadosOrdenados.length > 1) {
-                    badgeLabel = '<span class="badge-down">🏆 Mais Econômico</span>';
-                } else if (index === mercadosOrdenados.length - 1 && mercadosOrdenados.length > 1) {
-                    badgeLabel = '<span class="badge-up">⚠️ Mais Caro</span>';
-                } else {
-                    badgeLabel = '<span class="badge-equal">Regular</span>';
-                }
-
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <div>
-                        <strong>${m.nome}</strong>
-                        <div style="font-size: 0.75rem; color: #7f8c8d;">${m.visitas} compra(s) realizada(s)</div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-weight: bold; color: #2c3e50;">R$ ${m.total.toFixed(2)}</div>
-                        <div>${badgeLabel}</div>
-                    </div>
-                `;
-                listaRanking.appendChild(li);
-            });
-        }
-
-        function atualizarApp() {
-            localStorage.setItem('app_shopping_v16', JSON.stringify(shoppingItems));
-            localStorage.setItem('app_historico_compras_v16', JSON.stringify(historicoCompras));
-            localStorage.setItem('app_teto_compras_v16', tetoCompras);
-
-            renderizarShopping();
-            renderizarRelatorioMercados();
-            atualizarInterfaceEncarteBusca();
-        }
-
-        atualizarApp();
-    </script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('pwabuilder-sw.js');
-        }
-    </script>
 </body>
 </html>
