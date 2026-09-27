@@ -74,7 +74,7 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        input, button {
+        input, select, button {
             width: 100%;
             padding: 10px;
             margin-top: 6px;
@@ -99,6 +99,12 @@
 
         .add-bar input {
             margin: 0;
+            flex-grow: 1;
+        }
+
+        .add-bar select {
+            margin: 0;
+            width: 140px;
         }
 
         button.primary {
@@ -116,6 +122,21 @@
             cursor: pointer;
             font-size: 0.85rem;
             padding: 8px;
+        }
+
+        .category-group {
+            margin-top: 15px;
+            border-top: 2px solid var(--border-color);
+            padding-top: 8px;
+        }
+
+        .category-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            font-weight: bold;
+            color: var(--info-color);
+            margin-bottom: 5px;
+            letter-spacing: 0.5px;
         }
 
         .list-item {
@@ -252,6 +273,7 @@
             justify-content: space-around;
             padding: 10px 0;
             box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+            z-index: 100;
         }
 
         .nav-item {
@@ -298,6 +320,14 @@
 
             <div class="add-bar">
                 <input type="text" id="produtoNome" placeholder="Produto (ex: Arroz)" oninput="sugerirPreco()">
+                <select id="produtoCategoria">
+                    <option value="Mercearia">🛒 Mercearia</option>
+                    <option value="Hortifrúti">🍎 Hortifrúti</option>
+                    <option value="Açougue">🥩 Açougue</option>
+                    <option value="Limpeza">🧹 Limpeza</option>
+                    <option value="Higiene">🧴 Higiene</option>
+                    <option value="Outros">📦 Outros</option>
+                </select>
                 <button class="primary" onclick="adicionarProduto()" style="width: 45px; height: 40px; margin: 0; border-radius: 8px; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;">+</button>
             </div>
             <div id="sugestaoUltimoPreco" class="muted" style="font-size: 0.8rem; margin-top: 4px; min-height: 15px;"></div>
@@ -338,16 +368,18 @@
         </div>
     </div>
 
-    <!-- ABA 3: MERCADO (Histórico de Compras) -->
+    <!-- ABA 3: MERCADO (Histórico de Compras Analítico) -->
     <div id="tab-mercado" class="tab-content">
         <div class="card">
             <h3>📊 Histórico de Compras Realizadas</h3>
-            <p class="muted">Veja a lista de todas as suas idas ao supermercado e os valores totais gastos.</p>
+            <p class="muted">Acompanhe seus gastos totais e estatísticas de consumo por período.</p>
             
             <div style="background: var(--bg-color); padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 15px;">
                 <span class="muted" style="font-size: 0.85rem; text-transform: uppercase;">Total Geral em Alimentação</span>
                 <h2 id="totalGeralRelatorio" style="color: var(--primary-color); margin: 5px 0 0 0;">R$ 0,00</h2>
             </div>
+
+            <div id="estatisticasResumo" style="margin-bottom: 15px;"></div>
 
             <h4>Lista de Compras Efetuadas:</h4>
             <div id="listaRelatorioEstabelecimentos">Nenhum registo de compra efetuado ainda.</div>
@@ -431,13 +463,14 @@
 
     function adicionarProduto() {
         const nome = document.getElementById('produtoNome').value.trim();
+        const categoria = document.getElementById('produtoCategoria').value;
         if(!nome) return alert('Preencha o nome do produto.');
 
         const itemExistente = carrinho.find(item => item.nome.toLowerCase() === nome.toLowerCase());
         if(itemExistente) {
             itemExistente.qtd += 1;
         } else {
-            carrinho.push({ nome, preco: 0, qtd: 1, comprado: false });
+            carrinho.push({ nome, categoria, preco: 0, qtd: 1, comprado: false });
         }
 
         localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
@@ -459,11 +492,11 @@
             if(!confirmar) return;
         }
 
-        // Reconstrói o carrinho com base nos itens do último comparativo salvo
         carrinho = ultimoComparativo.itens.map(i => ({
             nome: i.nome,
+            categoria: i.categoria || 'Mercearia',
             qtd: i.qtd,
-            preco: 0, // Zera o preço para que o usuário redigite ou atualize na gôndola
+            preco: 0,
             comprado: false
         }));
 
@@ -472,30 +505,30 @@
         mostrarToast('Última lista carregada com sucesso! 🔄');
     }
 
-    function alterarQtd(index, delta) {
-        carrinho[index].qtd += delta;
-        if(carrinho[index].qtd <= 0) {
-            carrinho[index].qtd = 1;
+    function alterarQtd(indexOriginal, delta) {
+        carrinho[indexOriginal].qtd += delta;
+        if(carrinho[indexOriginal].qtd <= 0) {
+            carrinho[indexOriginal].qtd = 1;
         }
         localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
         renderizarCarrinho();
     }
 
-    function atualizarPrecoUnitario(index, valor) {
+    function atualizarPrecoUnitario(indexOriginal, valor) {
         const preco = parseFloat(valor.replace(',', '.')) || 0;
-        carrinho[index].preco = preco;
+        carrinho[indexOriginal].preco = preco;
         localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
         atualizarTotalECarrossel();
     }
 
-    function alternarComprado(index) {
-        carrinho[index].comprado = !carrinho[index].comprado;
+    function alternarComprado(indexOriginal) {
+        carrinho[indexOriginal].comprado = !carrinho[indexOriginal].comprado;
         localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
         renderizarCarrinho();
     }
 
-    function removerItem(index) {
-        carrinho.splice(index, 1);
+    function removerItem(indexOriginal) {
+        carrinho.splice(indexOriginal, 1);
         localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
         renderizarCarrinho();
     }
@@ -531,31 +564,48 @@
             return;
         }
 
-        container.innerHTML = '';
-        carrinho.forEach((item, index) => {
-            const isCheckedClass = item.comprado ? 'checked' : '';
-            const isCheckedAttr = item.comprado ? 'checked' : '';
-            const valorExibido = item.preco > 0 ? item.preco : '';
+        // Agrupa por categoria
+        const categoriasOrdem = ['Mercearia', 'Hortifrúti', 'Açougue', 'Limpeza', 'Higiene', 'Outros'];
+        let htmlAgrupado = '';
 
-            container.innerHTML += `
-                <div class="list-item">
-                    <div class="item-top-row">
-                        <input type="checkbox" ${isCheckedAttr} onchange="alternarComprado(${index})">
-                        <span class="item-name ${isCheckedClass}">${item.nome}</span>
-                    </div>
-                    <div class="item-bottom-row">
-                        <div class="qty-controls">
-                            <button type="button" onclick="alterarQtd(${index}, -1)">-</button>
-                            <span>${item.qtd}</span>
-                            <button type="button" onclick="alterarQtd(${index}, 1)">+</button>
+        categoriasOrdem.forEach(cat => {
+            const itensCat = carrinho.map((item, originalIndex) => ({ ...item, originalIndex })).filter(item => item.categoria === cat);
+            
+            if(itensCat.length > 0) {
+                htmlAgrupado += `
+                    <div class="category-group">
+                        <div class="category-title">${cat}</div>
+                `;
+
+                itensCat.forEach(item => {
+                    const isCheckedClass = item.comprado ? 'checked' : '';
+                    const isCheckedAttr = item.comprado ? 'checked' : '';
+                    const valorExibido = item.preco > 0 ? item.preco : '';
+
+                    htmlAgrupado += `
+                        <div class="list-item">
+                            <div class="item-top-row">
+                                <input type="checkbox" ${isCheckedAttr} onchange="alternarComprado(${item.originalIndex})">
+                                <span class="item-name ${isCheckedClass}">${item.nome}</span>
+                            </div>
+                            <div class="item-bottom-row">
+                                <div class="qty-controls">
+                                    <button type="button" onclick="alterarQtd(${item.originalIndex}, -1)">-</button>
+                                    <span>${item.qtd}</span>
+                                    <button type="button" onclick="alterarQtd(${item.originalIndex}, 1)">+</button>
+                                </div>
+                                <input type="number" step="0.01" class="item-price-input" placeholder="0,00" value="${valorExibido}" oninput="atualizarPrecoUnitario(${item.originalIndex}, this.value)">
+                                <button class="delete-btn" onclick="removerItem(${item.originalIndex})">✕</button>
+                            </div>
                         </div>
-                        <input type="number" step="0.01" class="item-price-input" placeholder="0,00" value="${valorExibido}" oninput="atualizarPrecoUnitario(${index}, this.value)">
-                        <button class="delete-btn" onclick="removerItem(${index})">✕</button>
-                    </div>
-                </div>
-            `;
+                    `;
+                });
+
+                htmlAgrupado += `</div>`;
+            }
         });
 
+        container.innerHTML = htmlAgrupado;
         atualizarTotalECarrossel();
     }
 
@@ -564,14 +614,22 @@
         if(!nomeMercado) return alert('Informe o nome do supermercado.');
         if(carrinho.length === 0) return alert('O carrinho está vazio.');
 
-        let totalCompra = carrinho.reduce((acc, item) => acc + (item.preco * item.qtd), 0);
-        if(totalCompra <= 0) return alert('Adicione preços aos itens do carrinho para registar no relatório.');
+        // Proteção contra preços zerados
+        const itensSemPreco = carrinho.filter(i => i.preco <= 0);
+        if(itensSemPreco.length > 0) {
+            const nomes = itensSemPreco.map(i => i.nome).join(', ');
+            return alert(`Atenção: Os seguintes produtos estão com preço R$ 0,00 ou vazio: ${nomes}. Preencha todos os preços antes de registar a compra.`);
+        }
 
-        const dataAtual = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        let totalCompra = carrinho.reduce((acc, item) => acc + (item.preco * item.qtd), 0);
+        const dataAtualObj = new Date();
+        const dataAtualStr = dataAtualObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const mesAnoStr = dataAtualObj.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
         
         historicoCompras.unshift({
             mercado: nomeMercado,
-            data: dataAtual,
+            data: dataAtualStr,
+            mesAno: mesAnoStr,
             total: totalCompra
         });
         localStorage.setItem('stokfy_historico_compras', JSON.stringify(historicoCompras));
@@ -586,6 +644,7 @@
 
             itensComparativo.push({
                 nome: item.nome,
+                categoria: item.categoria,
                 qtd: item.qtd,
                 precoAtual: item.preco,
                 precoAnterior: precoAnterior,
@@ -674,16 +733,33 @@
     function renderizarRelatorio() {
         const container = document.getElementById('listaRelatorioEstabelecimentos');
         const totalGeralEl = document.getElementById('totalGeralRelatorio');
+        const estatisticasEl = document.getElementById('estatisticasResumo');
 
         if(historicoCompras.length === 0) {
             container.innerHTML = 'Nenhum registo de compra efetuado ainda.';
             totalGeralEl.innerText = 'R$ 0,00';
+            estatisticasEl.innerHTML = '';
             return;
         }
 
         let totalGeral = 0;
         historicoCompras.forEach(c => totalGeral += c.total);
         totalGeralEl.innerText = `R$ ${totalGeral.toFixed(2)}`;
+
+        // Agrupa gastos por mês para as estatísticas analíticas
+        let gastosPorMes = {};
+        let gastosPorMercado = {};
+        historicoCompras.forEach(c => {
+            gastosPorMes[c.mesAno] = (gastosPorMes[c.mesAno] || 0) + c.total;
+            gastosPorMercado[c.mercado] = (gastosPorMercado[c.mercado] || 0) + c.total;
+        });
+
+        let statsHtml = `<div style="background: var(--bg-color); padding: 10px; border-radius: 8px; font-size: 0.85rem;"><strong>📊 Resumo Analítico:</strong><br>`;
+        for(let mes in gastosPorMes) {
+            statsHtml += `• ${mes}: <strong>R$ ${gastosPorMes[mes].toFixed(2)}</strong><br>`;
+        }
+        statsHtml += `</div>`;
+        estatisticasEl.innerHTML = statsHtml;
 
         container.innerHTML = '';
         historicoCompras.forEach((compra, index) => {
