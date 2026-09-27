@@ -1,18 +1,56 @@
-// This is the service worker with the combined offline experience (precaching + offline page)
+const CACHE = "stokfy-pwa-v1";
 
-const CACHE = "stokfy-offline-v1";
+const FILES_TO_CACHE = [
+  "./index.html",
+  "./manifest.json"
+];
 
-importScripts('https://storage.googleapis.com/workbox-cdn/releases/5.1.2/workbox-sw.js');
-
-self.addEventListener("message", (event) => {
-  if (event.data && event.data.type === "SKIP_WAITING") {
-    self.skipWaiting();
-  }
+// Instalação do Service Worker e salvamento dos arquivos em cache local
+self.addEventListener("install", (evt) => {
+  evt.waitUntil(
+    caches.open(CACHE).then((cache) => {
+      return cache.addAll(FILES_TO_CACHE);
+    })
+  );
+  self.skipWaiting();
 });
 
-workbox.routing.registerRoute(
-  new RegExp('/*'),
-  new workbox.strategies.NetworkFirst({
-    cacheName: CACHE
-  })
-);
+// Ativação e limpeza de caches antigos
+self.addEventListener("activate", (evt) => {
+  evt.waitUntil(
+    caches.keys().then((keyList) => {
+      return Promise.all(
+        keyList.map((key) => {
+          if (key !== CACHE) {
+            return caches.delete(key);
+          }
+        })
+      );
+    })
+  );
+  self.clients.claim();
+});
+
+// Interceptação de requisições: tenta buscar na rede, se falhar (offline), busca no cache
+self.addEventListener("fetch", (evt) => {
+  if (evt.request.method !== "GET") return;
+
+  evt.respondWith(
+    fetch(evt.request)
+      .then((response) => {
+        // Se obteve sucesso na rede, atualiza o cache opcionalmente
+        return response;
+      })
+      .catch(() => {
+        return caches.match(evt.request).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          // Fallback padrão para a página inicial caso a rota não seja encontrada
+          if (evt.request.mode === "navigate") {
+            return caches.match("./index.html");
+          }
+        });
+      })
+  );
+});
