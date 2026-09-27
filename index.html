@@ -80,11 +80,11 @@
     }
 
     .tab-content {
-      display: none;
+      display: none !important;
     }
 
     .tab-content.active {
-      display: block;
+      display: block !important;
     }
 
     .card {
@@ -554,10 +554,9 @@
       renderizarHistorico();
       renderizarComparativoUltima();
 
-      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-      document.getElementById('tab-comparativo').classList.add('active');
-      document.querySelectorAll('.nav-item')[1].classList.add('active');
+      // Forçar mudança para a aba comparativo corretamente
+      const btnComparativo = document.querySelectorAll('.nav-item')[1];
+      mudarAba('comparativo', btnComparativo);
     }
 
     function renderizarComparativoUltima() {
@@ -638,8 +637,9 @@
       document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
 
-      document.getElementById('tab-' + abaId).classList.add('active');
-      elementoBtn.classList.add('active');
+      const abaAlvo = document.getElementById('tab-' + abaId);
+      if (abaAlvo) abaAlvo.classList.add('active');
+      if (elementoBtn) elementoBtn.classList.add('active');
     }
 
     function toggleTheme() {
@@ -652,16 +652,17 @@
 
     window.onload = () => {
       const savedTheme = localStorage.getItem('stokfy_theme') || 'light';
-      body = document.body;
-      body.setAttribute('data-theme', savedTheme);
+      document.body.setAttribute('data-theme', savedTheme);
       renderizarLista();
       renderizarHistorico();
       renderizarComparativoUltima();
     };
 
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed: ', err));
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        for(let registration of registrations) {
+          registration.unregister();
+        }
       });
     }
 
