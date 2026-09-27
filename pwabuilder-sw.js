@@ -7,7 +7,7 @@
 // Isso força o navegador a descartar o cache antigo e assumir o controle
 // imediatamente, sem o usuário precisar limpar dados do app manualmente.
 
-const CACHE_VERSION = 'stokfy-v2';
+const CACHE_VERSION = 'stokfy-v3';
 
 const ARQUIVOS_PARA_CACHE = [
   './',
