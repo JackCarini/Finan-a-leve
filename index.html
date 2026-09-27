@@ -246,6 +246,7 @@
             justify-content: space-around;
             padding: 10px 0;
             box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+            z-index: 100;
         }
 
         .nav-item {
@@ -253,7 +254,7 @@
             border: none;
             color: var(--text-muted);
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             width: auto;
             margin: 0;
             padding: 0;
@@ -266,6 +267,15 @@
 
         .badge-econ { background: #d4edda; color: #155724; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
         .badge-cara { background: #f8d7da; color: #721c24; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+        
+        .comp-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -288,8 +298,8 @@
             <p class="muted" style="margin-top: 0; font-size: 0.85rem;">Acompanhe o total do carrinho em tempo real contra o seu teto planejado.</p>
 
             <div class="add-bar">
-                <input type="text" id="produtoNome" placeholder="Produto (ex: Arroz)" oninput="sugerirPreco()">
-                <input type="number" id="produtoPreco" placeholder="Preço opc" step="0.01" style="width: 110px;">
+                <input type="text" id="produtoNome" placeholder="Produto (ex: Arroz)" oninput="sugerirPrecoVisual()">
+                <input type="number" id="produtoPreco" placeholder="Último: R$ 0,00" step="0.01" style="width: 130px;">
                 <button class="primary" onclick="adicionarProduto()" style="width: 45px; height: 40px; margin: 0; border-radius: 8px; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;">+</button>
             </div>
 
@@ -305,7 +315,7 @@
 
         <div class="card">
             <h3>Fechar e Salvar Compra Atual</h3>
-            <p class="muted" style="margin-top:0;">Informe em qual supermercado realizou esta compra para alimentar o relatório comparativo.</p>
+            <p class="muted" style="margin-top:0;">Informe em qual supermercado realizou esta compra para alimentar o relatório e gerar o comparativo.</p>
             <input type="text" id="nomeSupermercado" placeholder="Nome do Supermercado (ex: Supermercado X)">
             <button class="primary" onclick="registarCompraNoRelatorio()" style="background-color: var(--info-color);">Registar Compra no Relatório</button>
         </div>
@@ -320,7 +330,22 @@
         </div>
     </div>
 
-    <!-- ABA 2: MERCADO (Relatório de Gastos por Estabelecimento) -->
+    <!-- ABA 2: COMPARATIVO (Última Compra vs Histórico) -->
+    <div id="tab-comparativo" class="tab-content">
+        <div class="card">
+            <h3>📈 Comparativo da Última Compra</h3>
+            <p class="muted">Veja o que encareceu ou barateou em relação ao seu histórico de preços anterior.</p>
+            
+            <div id="resumoComparativoBox" style="background: var(--bg-color); padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 15px;">
+                <span class="muted" style="font-size: 0.85rem; text-transform: uppercase;">Balanço Geral de Variação</span>
+                <h2 id="balancoGeralValor" style="margin: 5px 0 0 0;">R$ 0,00</h2>
+            </div>
+
+            <div id="listaComparativoItens">Nenhum registo de compra recente para comparar.</div>
+        </div>
+    </div>
+
+    <!-- ABA 3: MERCADO (Relatório de Gastos por Estabelecimento) -->
     <div id="tab-mercado" class="tab-content">
         <div class="card">
             <h3>📊 Relatório de Gastos por Estabelecimento</h3>
@@ -344,6 +369,9 @@
     <button class="nav-item active" onclick="mudarAba('inicio', this)">
         🏠<br>Início
     </button>
+    <button class="nav-item" onclick="mudarAba('comparativo', this)">
+        📈<br>Comparativo
+    </button>
     <button class="nav-item" onclick="mudarAba('mercado', this)">
         🛒<br>Mercado
     </button>
@@ -353,6 +381,7 @@
     let carrinho = JSON.parse(localStorage.getItem('stokfy_carrinho')) || [];
     let historicoPrecos = JSON.parse(localStorage.getItem('stokfy_historico')) || {};
     let relatorioEstabelecimentos = JSON.parse(localStorage.getItem('stokfy_relatorio')) || {};
+    let ultimoComparativo = JSON.parse(localStorage.getItem('stokfy_ultimo_comparativo')) || [];
     let tetoGastos = parseFloat(localStorage.getItem('stokfy_teto')) || 0;
 
     function toggleTheme() {
@@ -376,6 +405,9 @@
         if(abaId === 'mercado') {
             renderizarRelatorio();
         }
+        if(abaId === 'comparativo') {
+            renderizarComparativo();
+        }
     }
 
     function definirTeto() {
@@ -387,10 +419,14 @@
         }
     }
 
-    function sugerirPreco() {
+    // Agora funciona apenas como sugestão visual (placeholder), sem preencher o input à força
+    function sugerirPrecoVisual() {
         const nome = document.getElementById('produtoNome').value.trim().toLowerCase();
-        if(historicoPrecos[nome]) {
-            document.getElementById('produtoPreco').value = historicoPrecos[nome];
+        const inputPreco = document.getElementById('produtoPreco');
+        if(historicoPrecos[nome] !== undefined) {
+            inputPreco.placeholder = `Último: R$ ${historicoPrecos[nome].toFixed(2)}`;
+        } else {
+            inputPreco.placeholder = `Preço opcional`;
         }
     }
 
@@ -416,15 +452,11 @@
             carrinho.push({ nome, preco: isNaN(preco) ? 0 : preco, qtd: 1, comprado: false });
         }
 
-        if(preco > 0) {
-            historicoPrecos[nome.toLowerCase()] = preco;
-            localStorage.setItem('stokfy_historico', JSON.stringify(historicoPrecos));
-        }
-
         localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
 
         document.getElementById('produtoNome').value = '';
         document.getElementById('produtoPreco').value = '';
+        document.getElementById('produtoPreco').placeholder = 'Preço opcional';
         
         renderizarCarrinho();
         mostrarToast();
@@ -442,13 +474,9 @@
     function atualizarPrecoUnitario(index, valor) {
         const preco = parseFloat(valor.replace(',', '.')) || 0;
         carrinho[index].preco = preco;
-        if(preco > 0) {
-            historicoPrecos[carrinho[index].nome.toLowerCase()] = preco;
-            localStorage.setItem('stokfy_historico', JSON.stringify(historicoPrecos));
-        }
         localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
         
-        // Apenas atualiza o valor total e alertas sem recriar o input, mantendo o foco ativo!
+        // Atualiza o total e alertas sem recriar o input, mantendo o foco ativo!
         atualizarTotalECarrossel();
     }
 
@@ -529,6 +557,30 @@
         let totalCompra = carrinho.reduce((acc, item) => acc + (item.preco * item.qtd), 0);
         if(totalCompra <= 0) return alert('Adicione preços aos itens do carrinho para registar no relatório.');
 
+        // Montar os dados para o comparativo antes de zerar o carrinho
+        let dadosComparativo = [];
+        carrinho.forEach(item => {
+            const chave = item.nome.toLowerCase();
+            const precoAnterior = historicoPrecos[chave] !== undefined ? historicoPrecos[chave] : item.preco;
+            
+            dadosComparativo.push({
+                nome: item.nome,
+                qtd: item.qtd,
+                precoAtual: item.preco,
+                precoAnterior: precoAnterior,
+                diferencaUnitario: item.preco - precoAnterior
+            });
+
+            // Atualiza o histórico geral com o novo preço pago
+            if(item.preco > 0) {
+                historicoPrecos[chave] = item.preco;
+            }
+        });
+
+        ultimoComparativo = dadosComparativo;
+        localStorage.setItem('stokfy_historico', JSON.stringify(historicoPrecos));
+        localStorage.setItem('stokfy_ultimo_comparativo', JSON.stringify(ultimoComparativo));
+
         if(!relatorioEstabelecimentos[nomeMercado]) {
             relatorioEstabelecimentos[nomeMercado] = { total: 0, compras: 0 };
         }
@@ -542,7 +594,69 @@
         carrinho = [];
         localStorage.removeItem('stokfy_carrinho');
         renderizarCarrinho();
-        mostrarToast("Compra registada no relatório! 📊");
+        mostrarToast("Compra registada e comparativo gerado! 📈");
+    }
+
+    function renderizarComparativo() {
+        const container = document.getElementById('listaComparativoItens');
+        const boxResumo = document.getElementById('resumoComparativoBox');
+        const balancoEl = document.getElementById('balancoGeralValor');
+
+        if(ultimoComparativo.length === 0) {
+            container.innerHTML = 'Nenhum registo de compra recente para comparar. Feche uma compra na aba Início.';
+            balancoEl.innerText = 'R$ 0,00';
+            boxResumo.style.background = 'var(--bg-color)';
+            return;
+        }
+
+        let totalDiferencaGeral = 0;
+        container.innerHTML = '';
+
+        ultimoComparativo.forEach(item => {
+            const subtotalAtual = item.precoAtual * item.qtd;
+            const subtotalAnterior = item.precoAnterior * item.qtd;
+            const variacaoTotal = subtotalAtual - subtotalAnterior;
+            totalDiferencaGeral += variacaoTotal;
+
+            let badgeCor = 'muted';
+            let sinalTexto = '=';
+            if(item.precoAtual < item.precoAnterior) {
+                badgeCor = '#155724; background: #d4edda;';
+                sinalTexto = `📉 -R$ ${Math.abs(item.diferencaUnitario * item.qtd).toFixed(2)}`;
+            } else if(item.precoAtual > item.precoAnterior) {
+                badgeCor = '#721c24; background: #f8d7da;';
+                sinalTexto = `📈 +R$ ${Math.abs(item.diferencaUnitario * item.qtd).toFixed(2)}`;
+            } else {
+                sinalTexto = '➡️ Igual';
+            }
+
+            container.innerHTML += `
+                <div class="comp-item" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+                    <div style="width: 100%; display: flex; justify-content: space-between;">
+                        <strong>${item.nome} (${item.qtd}x)</strong>
+                        <span style="font-weight: bold;">R$ ${subtotalAtual.toFixed(2)}</span>
+                    </div>
+                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem;">
+                        <span class="muted">Antigo: R$ ${item.precoAnterior.toFixed(2)} un | Atual: R$ ${item.precoAtual.toFixed(2)} un</span>
+                        <span style="padding: 2px 6px; border-radius: 4px; font-weight: bold; ${badgeCor}">${sinalTexto}</span>
+                    </div>
+                </div>
+            `;
+        });
+
+        if(totalDiferencaGeral < 0) {
+            boxResumo.style.background = '#d4edda';
+            balancoEl.style.color = '#155724';
+            balancoEl.innerText = `Economizou R$ ${Math.abs(totalDiferencaGeral).toFixed(2)} 🎉`;
+        } else if(totalDiferencaGeral > 0) {
+            boxResumo.style.background = '#f8d7da';
+            balancoEl.style.color = '#721c24';
+            balancoEl.innerText = `Gastou a mais R$ ${totalDiferencaGeral.toFixed(2)} ⚠️`;
+        } else {
+            boxResumo.style.background = 'var(--bg-color)';
+            balancoEl.style.color = 'var(--text-color)';
+            balancoEl.innerText = `Sem alteração de preços`;
+        }
     }
 
     function renderizarRelatorio() {
@@ -614,7 +728,8 @@
             carrinho: carrinho,
             historico: historicoPrecos,
             relatorio: relatorioEstabelecimentos,
-            teto: tetoGastos
+            teto: tetoGastos,
+            comparativo: ultimoComparativo
         };
         const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -636,10 +751,12 @@
                     historicoPrecos = dados.historico;
                     relatorioEstabelecimentos = dados.relatorio || {};
                     tetoGastos = dados.teto || 0;
+                    ultimoComparativo = dados.comparativo || [];
                     localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
                     localStorage.setItem('stokfy_historico', JSON.stringify(historicoPrecos));
                     localStorage.setItem('stokfy_relatorio', JSON.stringify(relatorioEstabelecimentos));
                     localStorage.setItem('stokfy_teto', tetoGastos);
+                    localStorage.setItem('stokfy_ultimo_comparativo', JSON.stringify(ultimoComparativo));
                     renderizarCarrinho();
                     alert('Dados restaurados com sucesso!');
                 } else {
