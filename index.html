@@ -264,16 +264,6 @@
       color: var(--primary-color);
     }
 
-    .badge-success {
-      background-color: #d4edda;
-      color: #155724;
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      margin-top: 10px;
-      text-align: center;
-    }
-
     nav.bottom-nav {
       position: fixed;
       bottom: 0;
@@ -324,6 +314,7 @@
           <button class="btn-outline" onclick="reutilizarUltima()">Reutilizar Última</button>
           <button class="btn-outline" onclick="definirTeto()">Definir Teto</button>
         </div>
+        <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 5px;" id="tetoInfo">Nenhum teto orçamentário definido.</p>
         <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 15px;">Itens agrupados automaticamente por setor para otimizar o seu percurso.</p>
 
         <div class="input-group">
@@ -397,6 +388,7 @@
     let produtos = JSON.parse(localStorage.getItem('stokfy_produtos')) || [];
     let historicoCompras = JSON.parse(localStorage.getItem('stokfy_historico')) || [];
     let ultimaComparacao = JSON.parse(localStorage.getItem('stokfy_ultima_comp')) || null;
+    let tetoOrcamento = parseFloat(localStorage.getItem('stokfy_teto')) || 0;
 
     function salvarDados() {
       localStorage.setItem('stokfy_produtos', JSON.stringify(produtos));
@@ -463,6 +455,7 @@
       if (produtos.length === 0) {
         container.innerHTML = '<p style="font-size: 0.9rem; color: #7f8c8d; margin-bottom: 15px;">Sua lista está vazia.</p>';
         document.getElementById('totalCarrinho').innerText = 'R$ 0,00';
+        atualizarTetoInfo(0);
         return;
       }
       container.innerHTML = '';
@@ -506,6 +499,29 @@
     function salvarKpi() {
       let total = produtos.reduce((acc, p) => acc + (p.qtd * p.preco), 0);
       document.getElementById('totalCarrinho').innerText = 'R$ ' + total.toFixed(2).replace('.', ',');
+      atualizarTetoInfo(total);
+    }
+
+    function atualizarTetoInfo(total) {
+      const tetoEl = document.getElementById('tetoInfo');
+      if (tetoOrcamento > 0) {
+        if (total > tetoOrcamento) {
+          tetoEl.innerHTML = `<span style="color: var(--danger-color); font-weight: bold;">⚠️ Teto ultrapassado! (Limite: R$ ${tetoOrcamento.toFixed(2).replace('.', ',')})</span>`;
+        } else {
+          tetoEl.innerHTML = `🎯 Teto Orçamentário: R$ ${tetoOrcamento.toFixed(2).replace('.', ',')} (Restam R$ ${(tetoOrcamento - total).toFixed(2).replace('.', ',')})`;
+        }
+      } else {
+        tetoEl.innerHTML = 'Nenhum teto orçamentário definido. Clique em "Definir Teto".';
+      }
+    }
+
+    function definirTeto() {
+      let novoTeto = prompt('Digite o valor do teto orçamentário (R$):', tetoOrcamento > 0 ? tetoOrcamento : '');
+      if (novoTeto !== null) {
+        tetoOrcamento = parseFloat(novoTeto.replace(',', '.')) || 0;
+        localStorage.setItem('stokfy_teto', tetoOrcamento);
+        salvarKpi();
+      }
     }
 
     function fecharCompra() {
@@ -538,7 +554,6 @@
       renderizarHistorico();
       renderizarComparativoUltima();
 
-      // Alternar automaticamente para a aba Comparativo para o usuário ver o resultado
       document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
       document.getElementById('tab-comparativo').classList.add('active');
@@ -637,7 +652,8 @@
 
     window.onload = () => {
       const savedTheme = localStorage.getItem('stokfy_theme') || 'light';
-      document.body.setAttribute('data-theme', savedTheme);
+      body = document.body;
+      body.setAttribute('data-theme', savedTheme);
       renderizarLista();
       renderizarHistorico();
       renderizarComparativoUltima();
@@ -650,7 +666,6 @@
     }
 
     function reutilizarUltima() { alert('Funcionalidade de reutilizar última lista pronta para uso!'); }
-    function definirTeto() { alert('Definição de teto orçamentário ativada.'); }
   </script>
 </body>
 </html>
