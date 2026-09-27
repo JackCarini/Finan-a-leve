@@ -15,6 +15,7 @@
             --primary-color: #27ae60;
             --danger-color: #e74c3c;
             --info-color: #2980b9;
+            --warning-color: #f39c12;
         }
 
         [data-theme="dark"] {
@@ -26,6 +27,7 @@
             --primary-color: #2ecc71;
             --danger-color: #e74c3c;
             --info-color: #3498db;
+            --warning-color: #f1c40f;
         }
 
         body {
@@ -34,6 +36,7 @@
             color: var(--text-color);
             margin: 0;
             padding: 16px;
+            padding-bottom: 80px;
             transition: background 0.3s, color 0.3s;
         }
 
@@ -147,6 +150,42 @@
             text-align: center;
             display: none;
         }
+
+        /* Abas de Navegação */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        nav.bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+        }
+
+        .nav-item {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.9rem;
+            width: auto;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .badge-econ { background: #d4edda; color: #155724; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+        .badge-cara { background: #f8d7da; color: #721c24; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -159,44 +198,83 @@
 
     <div id="toast" class="toast">Produto adicionado com sucesso! 🎉</div>
 
-    <div class="card">
-        <h3>Adicionar à Lista</h3>
-        <label class="muted">Produto</label>
-        <input type="text" id="produtoNome" placeholder="Ex: Arroz" oninput="sugerirPreco()">
+    <!-- ABA 1: INÍCIO (Lista e Carrinho) -->
+    <div id="tab-inicio" class="tab-content active">
+        <div class="card">
+            <h3>Adicionar à Lista</h3>
+            <label class="muted">Produto</label>
+            <input type="text" id="produtoNome" placeholder="Ex: Arroz" oninput="sugerirPreco()">
 
-        <div class="row">
-            <div>
-                <label class="muted">Preço Unitário (Opcional)</label>
-                <input type="number" id="produtoPreco" placeholder="0.00" step="0.01">
+            <div class="row">
+                <div>
+                    <label class="muted">Preço Unitário (Opcional)</label>
+                    <input type="number" id="produtoPreco" placeholder="0.00" step="0.01">
+                </div>
+                <div>
+                    <label class="muted">Quantidade</label>
+                    <input type="number" id="produtoQtd" value="1" min="1">
+                </div>
             </div>
-            <div>
-                <label class="muted">Quantidade</label>
-                <input type="number" id="produtoQtd" value="1" min="1">
-            </div>
+
+            <button class="primary" onclick="adicionarProduto()">Adicionar Produto</button>
         </div>
 
-        <button class="primary" onclick="adicionarProduto()">Adicionar Produto</button>
+        <div class="card">
+            <h3>Carrinho Atual</h3>
+            <div id="listaCarrinho">Sua lista está vazia.</div>
+            <p style="margin-top: 15px;"><strong>Total: </strong><span id="totalCarrinho" style="float: right; color: var(--primary-color);">R$ 0,00</span></p>
+        </div>
+
+        <div class="card">
+            <h3>Fechar e Salvar Compra Atual</h3>
+            <p class="muted" style="margin-top:0;">Informe em qual supermercado realizou esta compra para alimentar o relatório comparativo.</p>
+            <input type="text" id="nomeSupermercado" placeholder="Nome do Supermercado (ex: Supermercado X)">
+            <button class="primary" onclick="registarCompraNoRelatorio()" style="background-color: var(--info-color);">Registar Compra no Relatório</button>
+        </div>
+
+        <div class="card" style="padding: 12px;">
+            <h4 style="margin: 0 0 10px 0; font-size: 1rem;">Backup de Dados (Segurança)</h4>
+            <div class="row">
+                <button class="secondary" onclick="exportarDados()">Exportar Ficheiro</button>
+                <button class="secondary" onclick="document.getElementById('importFile').click()" style="background:#7f8c8d;">Importar Ficheiro</button>
+                <input type="file" id="importFile" style="display:none" onchange="importarDados(event)">
+            </div>
+        </div>
     </div>
 
-    <div class="card">
-        <h3>Carrinho Atual</h3>
-        <div id="listaCarrinho">Sua lista está vazia.</div>
-        <p style="margin-top: 15px;"><strong>Total: </strong><span id="totalCarrinho" style="float: right; color: var(--primary-color);">R$ 0,00</span></p>
-    </div>
+    <!-- ABA 2: MERCADO (Relatório de Gastos por Estabelecimento) -->
+    <div id="tab-mercado" class="tab-content">
+        <div class="card">
+            <h3>📊 Relatório de Gastos por Estabelecimento</h3>
+            <p class="muted">Descubra qual mercado é mais barato ou mais caro com base nas suas compras cadastradas.</p>
+            
+            <div style="background: var(--bg-color); padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 15px;">
+                <span class="muted" style="font-size: 0.85rem; text-transform: uppercase;">Total Geral em Alimentação</span>
+                <h2 id="totalGeralRelatorio" style="color: var(--primary-color); margin: 5px 0 0 0;">R$ 0,00</h2>
+            </div>
 
-    <div class="card" style="padding: 12px;">
-        <h4 style="margin: 0 0 10px 0; font-size: 1rem;">Backup de Dados (Segurança)</h4>
-        <div class="row">
-            <button class="secondary" onclick="exportarDados()">Exportar Ficheiro</button>
-            <button class="secondary" onclick="document.getElementById('importFile').click()" style="background:#7f8c8d;">Importar Ficheiro</button>
-            <input type="file" id="importFile" style="display:none" onchange="importarDados(event)">
+            <h4>Comparativo entre Redes:</h4>
+            <div id="listaRelatorioEstabelecimentos">Nenhum registo de compra efetuado ainda.</div>
+
+            <button onclick="limparRelatorio()" style="background: none; border: 1px solid var(--danger-color); color: var(--danger-color); margin-top: 20px;">Limpar Histórico do Relatório</button>
         </div>
     </div>
 </div>
 
+<!-- BARRA DE NAVEGAÇÃO INFERIOR -->
+<nav class="bottom-nav">
+    <button class="nav-item active" onclick="mudarAba('inicio', this)">
+        🏠<br>Início
+    </button>
+    <button class="nav-item" onclick="mudarAba('mercado', this)">
+        🛒<br>Mercado
+    </button>
+</nav>
+
 <script>
     let carrinho = JSON.parse(localStorage.getItem('stokfy_carrinho')) || [];
     let historicoPrecos = JSON.parse(localStorage.getItem('stokfy_historico')) || {};
+    let relatorioEstabelecimentos = JSON.parse(localStorage.getItem('stokfy_relatorio')) || {};
 
     function toggleTheme() {
         const currentTheme = document.documentElement.getAttribute('data-theme');
@@ -209,6 +287,18 @@
         document.documentElement.setAttribute('data-theme', 'dark');
     }
 
+    function mudarAba(abaId, elementoBtn) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+        document.getElementById('tab-' + abaId).classList.add('active');
+        elementoBtn.classList.add('active');
+
+        if(abaId === 'mercado') {
+            renderizarRelatorio();
+        }
+    }
+
     function sugerirPreco() {
         const nome = document.getElementById('produtoNome').value.trim().toLowerCase();
         if(historicoPrecos[nome]) {
@@ -216,8 +306,9 @@
         }
     }
 
-    function mostrarToast() {
+    function mostrarToast(msg = "Produto adicionado com sucesso! 🎉") {
         const t = document.getElementById('toast');
+        t.innerText = msg;
         t.style.display = 'block';
         setTimeout(() => { t.style.display = 'none'; }, 2000);
     }
@@ -306,10 +397,99 @@
         document.getElementById('totalCarrinho').innerText = `R$ ${total.toFixed(2)}`;
     }
 
+    function registarCompraNoRelatorio() {
+        const nomeMercado = document.getElementById('nomeSupermercado').value.trim();
+        if(!nomeMercado) return alert('Informe o nome do supermercado.');
+        if(carrinho.length === 0) return alert('O carrinho está vazio.');
+
+        let totalCompra = carrinho.reduce((acc, item) => acc + (item.preco * item.qtd), 0);
+        if(totalCompra <= 0) return alert('Adicione preços aos itens do carrinho para registar no relatório.');
+
+        if(!relatorioEstabelecimentos[nomeMercado]) {
+            relatorioEstabelecimentos[nomeMercado] = { total: 0, compras: 0 };
+        }
+
+        relatorioEstabelecimentos[nomeMercado].total += totalCompra;
+        relatorioEstabelecimentos[nomeMercado].compras += 1;
+
+        localStorage.setItem('stokfy_relatorio', JSON.stringify(relatorioEstabelecimentos));
+        
+        document.getElementById('nomeSupermercado').value = '';
+        carrinho = [];
+        localStorage.removeItem('stokfy_carrinho');
+        renderizarCarrinho();
+        mostrarToast("Compra registada no relatório! 📊");
+    }
+
+    function renderizarRelatorio() {
+        const container = document.getElementById('listaRelatorioEstabelecimentos');
+        const totalGeralEl = document.getElementById('totalGeralRelatorio');
+
+        const mercados = Object.keys(relatorioEstabelecimentos);
+        if(mercados.length === 0) {
+            container.innerHTML = 'Nenhum registo de compra efetuado ainda.';
+            totalGeralEl.innerText = 'R$ 0,00';
+            return;
+        }
+
+        let totalGeral = 0;
+        let mercadoMaisBarato = null;
+        let menorValor = Infinity;
+        let mercadoMaisCaro = null;
+        let maiorValor = -Infinity;
+
+        mercados.forEach(mercado => {
+            const dados = relatorioEstabelecimentos[mercado];
+            totalGeral += dados.total;
+            if(dados.total < menorValor) {
+                menorValor = dados.total;
+                mercadoMaisBarato = mercado;
+            }
+            if(dados.total > maiorValor) {
+                maiorValor = dados.total;
+                mercadoMaisCaro = mercado;
+            }
+        });
+
+        totalGeralEl.innerText = `R$ ${totalGeral.toFixed(2)}`;
+        container.innerHTML = '';
+
+        mercados.forEach(mercado => {
+            const dados = relatorioEstabelecimentos[mercado];
+            let badge = '';
+            if(mercados.length > 1) {
+                if(mercado === mercadoMaisBarato) badge = '<span class="badge-econ">🏆 Mais Económico</span>';
+                if(mercado === mercadoMaisCaro) badge = '<span class="badge-cara">⚠️ Mais Caro</span>';
+            }
+
+            container.innerHTML += `
+                <div class="list-item" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+                    <div style="width: 100%; display: flex; justify-content: space-between;">
+                        <strong>${mercado}</strong>
+                        <span>R$ ${dados.total.toFixed(2)}</span>
+                    </div>
+                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
+                        <span class="muted">${dados.compras} compra(s) realizada(s)</span>
+                        ${badge}
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function limparRelatorio() {
+        if(confirm('Tem certeza que deseja apagar o histórico de relatórios?')) {
+            relatorioEstabelecimentos = {};
+            localStorage.removeItem('stokfy_relatorio');
+            renderizarRelatorio();
+        }
+    }
+
     function exportarDados() {
         const dados = {
             carrinho: carrinho,
-            historico: historicoPrecos
+            historico: historicoPrecos,
+            relatorio: relatorioEstabelecimentos
         };
         const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -329,8 +509,10 @@
                 if(dados.carrinho && dados.historico) {
                     carrinho = dados.carrinho;
                     historicoPrecos = dados.historico;
+                    relatorioEstabelecimentos = dados.relatorio || {};
                     localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
                     localStorage.setItem('stokfy_historico', JSON.stringify(historicoPrecos));
+                    localStorage.setItem('stokfy_relatorio', JSON.stringify(relatorioEstabelecimentos));
                     renderizarCarrinho();
                     alert('Dados restaurados com sucesso!');
                 } else {
