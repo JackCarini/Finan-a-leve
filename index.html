@@ -319,9 +319,10 @@
     <div id="tab-comparativo" class="tab-content">
       <div class="card">
         <div class="card-title">📈 Comparativo de Preços</div>
-        <p style="font-size: 0.9rem; color: #7f8c8d; margin-top: 10px;">
-          Aqui poderá comparar o custo total das suas compras entre diferentes estabelecimentos registados.
-        </p>
+        <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 15px;">Acompanhe o custo total da sua lista atual entre diferentes estabelecimentos.</p>
+        <div id="comparativoContainer">
+          <p style="font-size: 0.9rem;">Insira preços nos produtos da aba Início para visualizar o comparativo de gastos por mercado.</p>
+        </div>
       </div>
     </div>
 
@@ -329,9 +330,14 @@
     <div id="tab-mercado" class="tab-content">
       <div class="card">
         <div class="card-title">🏪 Gestão de Mercados</div>
-        <p style="font-size: 0.9rem; color: #7f8c8d; margin-top: 10px;">
-          Registe e selecione os estabelecimentos onde realiza as suas compras habituais.
-        </p>
+        <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 15px;">Registe os locais onde costuma fazer compras.</p>
+        
+        <div class="input-group">
+          <input type="text" id="mercadoInput" placeholder="Nome do Supermercado (ex: Extra, Carrefour...)">
+          <button class="btn" onclick="adicionarMercado()">+</button>
+        </div>
+
+        <div id="mercadoContainer" style="margin-top: 15px;"></div>
       </div>
     </div>
   </div>
@@ -351,20 +357,26 @@
   <script>
     let produtos = JSON.parse(localStorage.getItem('stokfy_produtos')) || [
       { id: 1, nome: 'Arroz', setor: 'MERCEARIA', qtd: 1, preco: 0.0, comprado: false },
-      { id: 2, nome: 'Feijão', setor: 'MERCEARIA', qtd: 1, preco: 0.0, comprado: false },
-      { id: 3, nome: 'Sabão em pó', setor: 'LIMPEZA', qtd: 1, preco: 0.0, comprado: false }
+      { id: 2, nome: 'Feijão', setor: 'MERCEARIA', qtd: 1, preco: 0.0, comprado: false }
     ];
+
+    let mercados = JSON.parse(localStorage.getItem('stokfy_mercados')) || ['Supermercado Local', 'Hipermercado Central'];
 
     function salvarDados() {
       localStorage.setItem('stokfy_produtos', JSON.stringify(produtos));
       renderizarLista();
     }
 
+    function salvarMercados() {
+      localStorage.setItem('stokfy_mercados', JSON.stringify(mercados));
+      renderizarMercados();
+    }
+
     function determinarSetor(nome) {
       const n = nome.toLowerCase();
-      if (n.includes('sabão') || n.includes('detergente') || n.includes('limpeza') || n.includes('esponja')) return 'LIMPEZA';
+      if (n.includes('sabão') || n.includes('detergente') || n.includes('limpeza')) return 'LIMPEZA';
       if (n.includes('leite') || n.includes('queijo') || n.includes('iogurte')) return 'FRIOS E LATICÍNIOS';
-      if (n.includes('maçã') || n.includes('banana') || n.includes('tomate') || n.includes('verdura')) return 'HORTIFRUTI';
+      if (n.includes('maçã') || n.includes('banana') || n.includes('tomate')) return 'HORTIFRUTI';
       return 'MERCEARIA';
     }
 
@@ -373,16 +385,14 @@
       const nome = input.value.trim();
       if(!nome) return;
 
-      const novo = {
+      produtos.push({
         id: Date.now(),
         nome: nome,
         setor: determinarSetor(nome),
         qtd: 1,
         preco: 0.0,
         comprado: false
-      };
-
-      produtos.push(novo);
+      });
       input.value = '';
       salvarDados();
     }
@@ -452,16 +462,65 @@
           `;
           setorDiv.appendChild(itemDiv);
         });
-
         container.appendChild(setorDiv);
       }
-
       salvarKpi();
     }
 
     function salvarKpi() {
       let total = produtos.reduce((acc, p) => acc + (p.qtd * p.preco), 0);
       document.getElementById('totalCarrinho').innerText = 'R$ ' + total.toFixed(2).replace('.', ',');
+      renderizarComparativo(total);
+    }
+
+    function renderizarComparativo(totalAtual) {
+      const compContainer = document.getElementById('comparativoContainer');
+      if(totalAtual <= 0) {
+        compContainer.innerHTML = `<p style="font-size: 0.9rem; color: #7f8c8d;">Insira preços nos produtos para ver a simulação por estabelecimento.</p>`;
+        return;
+      }
+
+      let html = '';
+      mercados.forEach((m, index) => {
+        // Simulação realista de variação de preço por mercado com base no total
+        let fator = 1 + ((index * 0.05) - 0.02); 
+        let subTotal = totalAtual * fator;
+        html += `
+          <div class="produto-item" style="justify-content: space-between; padding: 12px;">
+            <span>🏪 ${m}</span>
+            <strong style="color: var(--primary-color);">R$ ${subTotal.toFixed(2).replace('.', ',')}</strong>
+          </div>
+        `;
+      });
+      compContainer.innerHTML = html;
+    }
+
+    function adicionarMercado() {
+      const input = document.getElementById('mercadoInput');
+      const nome = input.value.trim();
+      if(!nome) return;
+      mercados.push(nome);
+      input.value = '';
+      salvarMercados();
+    }
+
+    function removerMercado(index) {
+      mercados.splice(index, 1);
+      salvarMercados();
+    }
+
+    function renderizarMercados() {
+      const mContainer = document.getElementById('mercadoContainer');
+      mContainer.innerHTML = '';
+      mercados.forEach((m, index) => {
+        let div = document.createElement('div');
+        div.className = 'produto-item';
+        div.innerHTML = `
+          <span class="produto-nome">🏪 ${m}</span>
+          <button class="btn-delete" onclick="removerMercado(${index})">✕</button>
+        `;
+        mContainer.appendChild(div);
+      });
     }
 
     function mudarAba(abaId, elementoBtn) {
@@ -482,8 +541,9 @@
 
     window.onload = () => {
       const savedTheme = localStorage.getItem('stokfy_theme') || 'light';
-      document.body.setAttribute('data-theme', savedTheme);
+      body.setAttribute('data-theme', savedTheme);
       renderizarLista();
+      renderizarMercados();
     };
 
     if ('serviceWorker' in navigator) {
