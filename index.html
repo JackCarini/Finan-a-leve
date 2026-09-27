@@ -344,8 +344,8 @@
 
         <div class="card">
             <h3>Fechar e Salvar Compra Atual</h3>
-            <p class="muted" style="margin-top:0;">Informe em qual supermercado realizou esta compra para salvar no histórico.</p>
-            <input type="text" id="nomeSupermercado" placeholder="Nome do Supermercado (ex: Supermercado X)">
+            <p class="muted" style="margin-top:0;">Informe o nome do estabelecimento onde realizou esta compra.</p>
+            <input type="text" id="nomeSupermercado" placeholder="Nome do Estabelecimento (ex: Supermercado Extra)">
             <button class="primary" onclick="registarCompraNoRelatorio()" style="background-color: var(--info-color);">Registar Compra e Gerar Comparativo</button>
         </div>
 
@@ -564,7 +564,6 @@
             return;
         }
 
-        // Agrupa por categoria
         const categoriasOrdem = ['Mercearia', 'Hortifrúti', 'Açougue', 'Limpeza', 'Higiene', 'Outros'];
         let htmlAgrupado = '';
 
@@ -611,10 +610,9 @@
 
     function registarCompraNoRelatorio() {
         const nomeMercado = document.getElementById('nomeSupermercado').value.trim();
-        if(!nomeMercado) return alert('Informe o nome do supermercado.');
+        if(!nomeMercado) return alert('Informe o nome do estabelecimento.');
         if(carrinho.length === 0) return alert('O carrinho está vazio.');
 
-        // Proteção contra preços zerados
         const itensSemPreco = carrinho.filter(i => i.preco <= 0);
         if(itensSemPreco.length > 0) {
             const nomes = itensSemPreco.map(i => i.nome).join(', ');
@@ -695,7 +693,7 @@
 
         let html = `
             <div style="background: var(--bg-color); padding: 12px; border-radius: 8px; margin-bottom: 15px;">
-                <strong>Supermercado:</strong> ${ultimoComparativo.mercado}<br>
+                <strong>Estabelecimento:</strong> ${ultimoComparativo.mercado}<br>
                 <strong>Total Atual:</strong> R$ ${ultimoComparativo.totalAtual.toFixed(2)}<br>
                 <strong>Custo Anterior Equivalente:</strong> R$ ${ultimoComparativo.totalAnterior.toFixed(2)}
             </div>
@@ -746,12 +744,10 @@
         historicoCompras.forEach(c => totalGeral += c.total);
         totalGeralEl.innerText = `R$ ${totalGeral.toFixed(2)}`;
 
-        // Agrupa gastos por mês para as estatísticas analíticas
         let gastosPorMes = {};
-        let gastosPorMercado = {};
         historicoCompras.forEach(c => {
-            gastosPorMes[c.mesAno] = (gastosPorMes[c.mesAno] || 0) + c.total;
-            gastosPorMercado[c.mercado] = (gastosPorMercado[c.mercado] || 0) + c.total;
+            const mesFormatado = c.mesAno || 'Mês anterior';
+            gastosPorMes[mesFormatado] = (gastosPorMes[mesFormatado] || 0) + c.total;
         });
 
         let statsHtml = `<div style="background: var(--bg-color); padding: 10px; border-radius: 8px; font-size: 0.85rem;"><strong>📊 Resumo Analítico:</strong><br>`;
