@@ -287,9 +287,12 @@
     <!-- ABA 1: INÍCIO -->
     <div id="tab-inicio" class="tab-content active">
         <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
                 <h3 style="margin: 0;">🛒 Lista de Compras</h3>
-                <button onclick="definirTeto()" style="width: auto; margin: 0; padding: 4px 8px; font-size: 0.8rem; background: none; border: 1px solid var(--info-color); color: var(--info-color); border-radius: 6px; cursor: pointer;">🎯 Definir Teto</button>
+                <div style="display: flex; gap: 6px;">
+                    <button onclick="reutilizarUltimaLista()" style="width: auto; margin: 0; padding: 4px 8px; font-size: 0.8rem; background: none; border: 1px solid var(--primary-color); color: var(--primary-color); border-radius: 6px; cursor: pointer;">🔄 Reutilizar Última</button>
+                    <button onclick="definirTeto()" style="width: auto; margin: 0; padding: 4px 8px; font-size: 0.8rem; background: none; border: 1px solid var(--info-color); color: var(--info-color); border-radius: 6px; cursor: pointer;">🎯 Definir Teto</button>
+                </div>
             </div>
             <p class="muted" style="margin-top: 0; font-size: 0.85rem;">Acompanhe o total do carrinho em tempo real contra o seu teto planejado.</p>
 
@@ -446,6 +449,29 @@
         mostrarToast();
     }
 
+    function reutilizarUltimaLista() {
+        if(!ultimoComparativo || !ultimoComparativo.itens || ultimoComparativo.itens.length === 0) {
+            return alert('Não há registo de uma lista anterior para reutilizar.');
+        }
+
+        if(carrinho.length > 0) {
+            const confirmar = confirm('Seu carrinho atual possui itens. Deseja substituir pelos itens da última lista?');
+            if(!confirmar) return;
+        }
+
+        // Reconstrói o carrinho com base nos itens do último comparativo salvo
+        carrinho = ultimoComparativo.itens.map(i => ({
+            nome: i.nome,
+            qtd: i.qtd,
+            preco: 0, // Zera o preço para que o usuário redigite ou atualize na gôndola
+            comprado: false
+        }));
+
+        localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
+        renderizarCarrinho();
+        mostrarToast('Última lista carregada com sucesso! 🔄');
+    }
+
     function alterarQtd(index, delta) {
         carrinho[index].qtd += delta;
         if(carrinho[index].qtd <= 0) {
@@ -458,8 +484,6 @@
     function atualizarPrecoUnitario(index, valor) {
         const preco = parseFloat(valor.replace(',', '.')) || 0;
         carrinho[index].preco = preco;
-        
-        // Aqui apenas atualiza o carrinho local. O histórico global só muda ao registar a compra.
         localStorage.setItem('stokfy_carrinho', JSON.stringify(carrinho));
         atualizarTotalECarrossel();
     }
@@ -555,10 +579,8 @@
         let itensComparativo = [];
         let totalAnteriorCalculado = 0;
 
-        // 1. PRIMEIRO calcula o comparativo usando o preço ANTERIOR guardado no histórico
         carrinho.forEach(item => {
             const nomeLower = item.nome.toLowerCase();
-            // Se já houver um preço antigo guardado, usa ele. Senão, assume o preço atual.
             const precoAnterior = historicoPrecos[nomeLower] !== undefined ? historicoPrecos[nomeLower] : item.preco;
             totalAnteriorCalculado += (precoAnterior * item.qtd);
 
@@ -579,7 +601,6 @@
         };
         localStorage.setItem('stokfy_ultimo_comparativo', JSON.stringify(ultimoComparativo));
 
-        // 2. DEPOIS atualiza o histórico global com os novos preços pagos nesta compra
         carrinho.forEach(item => {
             if(item.preco > 0) {
                 historicoPrecos[item.nome.toLowerCase()] = item.preco;
