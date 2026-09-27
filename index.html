@@ -546,7 +546,6 @@
         let totalCompra = carrinho.reduce((acc, item) => acc + (item.preco * item.qtd), 0);
         if(totalCompra <= 0) return alert('Adicione preços aos itens do carrinho para registar no relatório.');
 
-        // Salvar compra individual na lista cronológica com data formatada
         const dataAtual = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
         
         historicoCompras.unshift({
@@ -556,7 +555,6 @@
         });
         localStorage.setItem('stokfy_historico_compras', JSON.stringify(historicoCompras));
 
-        // Gerar Comparativo
         let itensComparativo = [];
         let totalAnteriorCalculado = 0;
 
@@ -612,7 +610,7 @@
             <div style="background: var(--bg-color); padding: 12px; border-radius: 8px; margin-bottom: 15px;">
                 <strong>Supermercado:</strong> ${ultimoComparativo.mercado}<br>
                 <strong>Total Atual:</strong> R$ ${ultimoComparativo.totalAtual.toFixed(2)}<br>
-                <strong>Total Base Anterior:</strong> R$ ${ultimoComparativo.totalAnterior.toFixed(2)}
+                <strong>Custo Anterior Equivalente:</strong> R$ ${ultimoComparativo.totalAnterior.toFixed(2)}
             </div>
             ${balancoTexto}
             <h4 style="margin-top: 20px;">Itens Lado a Lado:</h4>
