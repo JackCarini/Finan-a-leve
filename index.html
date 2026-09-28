@@ -125,7 +125,6 @@
       color: white;
     }
 
-    /* Painel de Teto Orçamentário Destacado */
     .teto-dashboard {
       background-color: var(--card-bg);
       border: 1px solid var(--border-color);
@@ -508,9 +507,26 @@
 
     function determinarSetor(nome) {
       const n = nome.toLowerCase();
-      if (n.includes('sabão') || n.includes('detergente') || n.includes('limpeza')) return 'LIMPEZA';
-      if (n.includes('leite') || n.includes('queijo') || n.includes('iogurte')) return 'FRIOS E LATICÍNIOS';
-      if (n.includes('maçã') || n.includes('banana') || n.includes('tomate')) return 'HORTIFRUTI';
+      
+      // Limpeza
+      if (n.includes('sabão') || n.includes('detergente') || n.includes('amaciante') || n.includes('limpeza') || n.includes('desinfetante') || n.includes('esponja') || n.includes('papel higiênico') || n.includes('alvejante') || n.includes('multiuso')) return 'LIMPEZA';
+      
+      // Carnes, Aves e Peixes
+      if (n.includes('carne') || n.includes('frango') || n.includes('carne moída') || n.includes('bife') || n.includes('peito de frango') || n.includes('porco') || n.includes('linguiça') || n.includes('salsicha') || n.includes('bacon') || n.includes('presunto') || n.includes('peixe') || n.includes('alcatra') || n.includes('costela')) return 'CARNES';
+      
+      // Frios e Laticínios
+      if (n.includes('leite') || n.includes('queijo') || n.includes('nata') || n.includes('requeijão') || n.includes('manteiga') || n.includes('iogurte') || n.includes('margarina') || n.includes('creme de leite') || n.includes('ovos')) return 'FRIOS E LATICÍNIOS';
+      
+      // Hortifruti
+      if (n.includes('maçã') || n.includes('banana') || n.includes('tomate') || n.includes('batata') || n.includes('cebola') || n.includes('alface') || n.includes('cenoura') || n.includes('fruta') || n.includes('verdura') || n.includes('alho') || n.includes('limão') || n.includes('mamão')) return 'HORTIFRUTI';
+      
+      // Bebidas
+      if (n.includes('cerveja') || n.includes('refrigerante') || n.includes('suco') || n.includes('água') || n.includes('vinho') || n.includes('energético')) return 'BEBIDAS';
+      
+      // Padaria
+      if (n.includes('pão') || n.includes('bolo') || n.includes('biscoito') || n.includes('rosca')) return 'PADARIA';
+      
+      // Padrão (Mercearia)
       return 'MERCEARIA';
     }
 
@@ -858,7 +874,7 @@
 
     window.onload = () => {
       const savedTheme = localStorage.getItem('stokfy_theme') || 'light';
-      document.body.setAttribute('data-theme', savedTheme);
+      body.setAttribute('data-theme', savedTheme);
       renderizarLista();
       renderizarHistorico();
       renderizarComparativoUltima();
