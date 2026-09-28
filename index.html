@@ -800,14 +800,14 @@
       renderizarHistorico();
       renderizarComparativoUltima();
     };
-
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(registrations => {
-        for(let registration of registrations) {
-          registration.unregister();
-        }
+        if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./pwabuilder-sw.js')
+          .then(() => console.log('Service Worker registado com sucesso!'))
+          .catch(err => console.log('Erro ao registar Service Worker:', err));
       });
     }
+
   </script>
 </body>
 </html>
