@@ -404,7 +404,7 @@
       <!-- PAINEL DE TETO ORÇAMENTÁRIO -->
       <div class="teto-dashboard">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-          <strong style="font-size: 0.95rem;">Controle Orçamentário</strong>
+          <strong style="font-size: 0.95rem;">Controlo Orçamentário</strong>
           <span id="tetoStatusAlerta" style="font-size: 0.75rem; font-weight: bold; color: var(--primary-color);">Dentro do Limite</span>
         </div>
         <div class="teto-grid">
@@ -635,9 +635,9 @@
       const valRestanteEl = document.getElementById('valRestanteDisplay');
       const statusAlertaEl = document.getElementById('tetoStatusAlerta');
 
-      let totalCarrinho = produtos.reduce((acc, p) => acc + (p.qtd * p.preco), 0);
-      let totalHistorico = historicoCompras.reduce((acc, c) => acc + c.total, 0);
-      let gastoTotal = totalCarrinho + totalHistorico;
+      // O gasto agora reflete apenas o histórico de compras efetivadas no mês/período. 
+      // O carrinho atual serve apenas de planejamento ("Total Previsto no Carrinho").
+      let gastoTotal = historicoCompras.reduce((acc, c) => acc + c.total, 0);
 
       valGastoEl.innerText = 'R$ ' + gastoTotal.toFixed(2).replace('.', ',');
 
