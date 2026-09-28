@@ -566,7 +566,7 @@
       if (produtos.length === 0) {
         container.innerHTML = '<p style="font-size: 0.9rem; color: #7f8c8d; margin-bottom: 15px;">Sua lista está vazia.</p>';
         document.getElementById('totalCarrinho').innerText = 'R$ 0,00';
-        atualizarTetoInfo(0);
+        salvarKpi();
         return;
       }
       container.innerHTML = '';
@@ -608,25 +608,29 @@
     }
 
     function salvarKpi() {
-      let total = produtos.reduce((acc, p) => acc + (p.qtd * p.preco), 0);
-      document.getElementById('totalCarrinho').innerText = 'R$ ' + total.toFixed(2).replace('.', ',');
-      atualizarTetoInfo(total);
+      let totalCarrinho = produtos.reduce((acc, p) => acc + (p.qtd * p.preco), 0);
+      document.getElementById('totalCarrinho').innerText = 'R$ ' + totalCarrinho.toFixed(2).replace('.', ',');
+      atualizarTetoInfo();
     }
 
-    function atualizarTetoInfo(total) {
+    function atualizarTetoInfo() {
       const valTetoEl = document.getElementById('valTetoDisplay');
       const valGastoEl = document.getElementById('valGastoDisplay');
       const valRestanteEl = document.getElementById('valRestanteDisplay');
       const statusAlertaEl = document.getElementById('tetoStatusAlerta');
 
-      valGastoEl.innerText = 'R$ ' + total.toFixed(2).replace('.', ',');
+      let totalCarrinho = produtos.reduce((acc, p) => acc + (p.qtd * p.preco), 0);
+      let totalHistorico = historicoCompras.reduce((acc, c) => acc + c.total, 0);
+      let gastoTotal = totalCarrinho + totalHistorico;
+
+      valGastoEl.innerText = 'R$ ' + gastoTotal.toFixed(2).replace('.', ',');
 
       if (tetoOrcamento > 0) {
         valTetoEl.innerText = 'R$ ' + tetoOrcamento.toFixed(2).replace('.', ',');
-        let restante = tetoOrcamento - total;
+        let restante = tetoOrcamento - gastoTotal;
         valRestanteEl.innerText = 'R$ ' + restante.toFixed(2).replace('.', ',');
 
-        if (total > tetoOrcamento) {
+        if (gastoTotal > tetoOrcamento) {
           valRestanteEl.style.color = 'var(--danger-color)';
           statusAlertaEl.innerHTML = '<span style="color: var(--danger-color);">⚠️ Teto Ultrapassado!</span>';
         } else {
@@ -820,6 +824,7 @@
       }
       renderizarHistorico();
       renderizarComparativoUltima();
+      salvarKpi();
     }
 
     function limparHistorico() {
@@ -830,6 +835,7 @@
         localStorage.removeItem('stokfy_ultima_comp');
         renderizarHistorico();
         renderizarComparativoUltima();
+        salvarKpi();
       }
     }
 
@@ -852,7 +858,7 @@
 
     window.onload = () => {
       const savedTheme = localStorage.getItem('stokfy_theme') || 'light';
-      body.setAttribute('data-theme', savedTheme);
+      document.body.setAttribute('data-theme', savedTheme);
       renderizarLista();
       renderizarHistorico();
       renderizarComparativoUltima();
