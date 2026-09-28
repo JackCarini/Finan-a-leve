@@ -71,15 +71,6 @@
       gap: 10px;
     }
 
-    .teto-badge {
-      font-size: 0.75rem;
-      background-color: rgba(39, 174, 96, 0.1);
-      color: var(--primary-color);
-      padding: 4px 8px;
-      border-radius: 12px;
-      font-weight: bold;
-    }
-
     .theme-toggle {
       background: none;
       border: 1px solid var(--border-color);
@@ -132,6 +123,45 @@
     .quick-pill:hover {
       background-color: var(--primary-color);
       color: white;
+    }
+
+    /* Painel de Teto Orçamentário Destacado */
+    .teto-dashboard {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+
+    .teto-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .teto-box {
+      background-color: var(--bg-color);
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    .teto-box span {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: #7f8c8d;
+      font-weight: bold;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .teto-box strong {
+      font-size: 1rem;
+      font-weight: bold;
     }
 
     .card {
@@ -355,7 +385,6 @@
       <h1>Stokfy</h1>
     </div>
     <div class="header-right">
-      <div id="tetoHeaderBadge" class="teto-badge">Sem Teto</div>
       <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()">🌓 Tema</button>
     </div>
   </header>
@@ -363,6 +392,7 @@
   <div class="container">
     <!-- ABA 1: INÍCIO -->
     <div id="tab-inicio" class="tab-content active">
+      
       <div class="quick-actions">
         <button class="quick-pill" onclick="reutilizarUltima()">
           <span>📥</span> Reutilizar Última
@@ -372,9 +402,30 @@
         </button>
       </div>
 
+      <!-- PAINEL DE TETO ORÇAMENTÁRIO -->
+      <div class="teto-dashboard">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+          <strong style="font-size: 0.95rem;">Controlo Orçamentário</strong>
+          <span id="tetoStatusAlerta" style="font-size: 0.75rem; font-weight: bold; color: var(--primary-color);">Dentro do Limite</span>
+        </div>
+        <div class="teto-grid">
+          <div class="teto-box">
+            <span>Teto</span>
+            <strong id="valTetoDisplay" style="color: var(--text-color);">R$ 0,00</strong>
+          </div>
+          <div class="teto-box">
+            <span>Gasto</span>
+            <strong id="valGastoDisplay" style="color: var(--primary-color);">R$ 0,00</strong>
+          </div>
+          <div class="teto-box">
+            <span>Restante</span>
+            <strong id="valRestanteDisplay" style="color: var(--primary-color);">R$ 0,00</strong>
+          </div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-title">🛒 Lista de Compras</div>
-        <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 5px;" id="tetoInfo">Nenhum teto orçamentário definido.</p>
         <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 15px;">Itens agrupados automaticamente por setor para otimizar o seu percurso.</p>
 
         <div class="input-group">
@@ -563,23 +614,30 @@
     }
 
     function atualizarTetoInfo(total) {
-      const tetoEl = document.getElementById('tetoInfo');
-      const badgeEl = document.getElementById('tetoHeaderBadge');
+      const valTetoEl = document.getElementById('valTetoDisplay');
+      const valGastoEl = document.getElementById('valGastoDisplay');
+      const valRestanteEl = document.getElementById('valRestanteDisplay');
+      const statusAlertaEl = document.getElementById('tetoStatusAlerta');
+
+      valGastoEl.innerText = 'R$ ' + total.toFixed(2).replace('.', ',');
 
       if (tetoOrcamento > 0) {
-        badgeEl.innerText = `Teto: R$ ${tetoOrcamento.toFixed(2).replace('.', ',')}`;
+        valTetoEl.innerText = 'R$ ' + tetoOrcamento.toFixed(2).replace('.', ',');
+        let restante = tetoOrcamento - total;
+        valRestanteEl.innerText = 'R$ ' + restante.toFixed(2).replace('.', ',');
+
         if (total > tetoOrcamento) {
-          tetoEl.innerHTML = `<span style="color: var(--danger-color); font-weight: bold;">⚠️ Teto ultrapassado! (Limite: R$ ${tetoOrcamento.toFixed(2).replace('.', ',')})</span>`;
-          badgeEl.style.backgroundColor = 'rgba(231, 76, 60, 0.1)';
-          badgeEl.style.color = 'var(--danger-color)';
+          valRestanteEl.style.color = 'var(--danger-color)';
+          statusAlertaEl.innerHTML = '<span style="color: var(--danger-color);">⚠️ Teto Ultrapassado!</span>';
         } else {
-          tetoEl.innerHTML = `🎯 Teto Orçamentário: R$ ${tetoOrcamento.toFixed(2).replace('.', ',')} (Restam R$ ${(tetoOrcamento - total).toFixed(2).replace('.', ',')})`;
-          badgeEl.style.backgroundColor = 'rgba(39, 174, 96, 0.1)';
-          badgeEl.style.color = 'var(--primary-color)';
+          valRestanteEl.style.color = 'var(--primary-color)';
+          statusAlertaEl.innerHTML = '<span style="color: var(--primary-color);">✅ Dentro do Limite</span>';
         }
       } else {
-        tetoEl.innerHTML = 'Nenhum teto orçamentário definido. Clique em "Definir Teto" acima.';
-        badgeEl.innerText = 'Sem Teto';
+        valTetoEl.innerText = 'Não definido';
+        valRestanteEl.innerText = 'R$ 0,00';
+        valRestanteEl.style.color = 'var(--text-color)';
+        statusAlertaEl.innerText = 'Defina um Teto';
       }
     }
 
@@ -657,10 +715,9 @@
     }
 
     function encontrarPrecoAnterior(nomeProduto, compraAtualId) {
-      // Procura nas compras anteriores (a partir da segunda posição do histórico ou ignorando a atual)
       for (let i = 0; i < historicoCompras.length; i++) {
         let compra = historicoCompras[i];
-        if (compra.id === compraAtualId) continue; // Pula a compra atual se estiver a testar
+        if (compra.id === compraAtualId) continue;
         
         let itemEncontrado = compra.itens.find(item => item.nome.toLowerCase() === nomeProduto.toLowerCase());
         if (itemEncontrado && itemEncontrado.preco > 0) {
@@ -795,19 +852,19 @@
 
     window.onload = () => {
       const savedTheme = localStorage.getItem('stokfy_theme') || 'light';
-      document.body.setAttribute('data-theme', savedTheme);
+      body.setAttribute('data-theme', savedTheme);
       renderizarLista();
       renderizarHistorico();
       renderizarComparativoUltima();
     };
-        if ('serviceWorker' in navigator) {
+
+    if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./pwabuilder-sw.js')
           .then(() => console.log('Service Worker registado com sucesso!'))
           .catch(err => console.log('Erro ao registar Service Worker:', err));
       });
     }
-
   </script>
 </body>
 </html>
