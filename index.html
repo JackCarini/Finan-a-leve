@@ -14,6 +14,7 @@
       --primary-color: #27ae60;
       --primary-hover: #219653;
       --danger-color: #e74c3c;
+      --success-color: #27ae60;
       --border-color: #e0e0e0;
       --input-bg: #ffffff;
     }
@@ -25,6 +26,7 @@
       --primary-color: #2ecc71;
       --primary-hover: #27ae60;
       --danger-color: #c0392b;
+      --success-color: #2ecc71;
       --border-color: #333333;
       --input-bg: #2d2d2d;
     }
@@ -102,7 +104,6 @@
       display: block !important;
     }
 
-    /* Barra de Ações Rápidas (Opção 7) */
     .quick-actions {
       display: flex;
       gap: 8px;
@@ -304,6 +305,17 @@
       color: var(--primary-color);
     }
 
+    .comparativo-card-item {
+      background-color: var(--bg-color);
+      border: 1px solid var(--border-color);
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
     nav.bottom-nav {
       position: fixed;
       bottom: 0;
@@ -351,8 +363,6 @@
   <div class="container">
     <!-- ABA 1: INÍCIO -->
     <div id="tab-inicio" class="tab-content active">
-      
-      <!-- BARRA DE AÇÕES RÁPIDAS (Opção 7) -->
       <div class="quick-actions">
         <button class="quick-pill" onclick="reutilizarUltima()">
           <span>📥</span> Reutilizar Última
@@ -394,7 +404,7 @@
     <div id="tab-comparativo" class="tab-content">
       <div class="card">
         <div class="card-title">📈 Comparativo da Última Compra</div>
-        <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 15px;">Veja o que economizou ou gastou a mais em relação aos preços anteriores.</p>
+        <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 15px;">Análise detalhada de variação de preços em relação às compras anteriores.</p>
         <div id="comparativoUltimaContainer">
           <p style="font-size: 0.9rem; color: #7f8c8d;">Nenhuma compra registada recentemente para comparativo.</p>
         </div>
@@ -646,6 +656,20 @@
       alert(`Lista do estabelecimento "${ultimaCompra.estabelecimento}" carregada com sucesso!`);
     }
 
+    function encontrarPrecoAnterior(nomeProduto, compraAtualId) {
+      // Procura nas compras anteriores (a partir da segunda posição do histórico ou ignorando a atual)
+      for (let i = 0; i < historicoCompras.length; i++) {
+        let compra = historicoCompras[i];
+        if (compra.id === compraAtualId) continue; // Pula a compra atual se estiver a testar
+        
+        let itemEncontrado = compra.itens.find(item => item.nome.toLowerCase() === nomeProduto.toLowerCase());
+        if (itemEncontrado && itemEncontrado.preco > 0) {
+          return { preco: itemEncontrado.preco, estabelecimento: compra.estabelecimento, data: compra.data };
+        }
+      }
+      return null;
+    }
+
     function renderizarComparativoUltima() {
       const container = document.getElementById('comparativoUltimaContainer');
       if (!ultimaComparacao) {
@@ -656,19 +680,40 @@
       let html = `
         <div style="background: var(--bg-color); padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--border-color);">
           <strong>Estabelecimento:</strong> ${ultimaComparacao.estabelecimento}<br>
-          <strong>Total Atual:</strong> R$ ${ultimaComparacao.total.toFixed(2).replace('.', ',')}<br>
+          <strong>Data:</strong> ${ultimaComparacao.data}<br>
+          <strong>Total da Compra:</strong> R$ ${ultimaComparacao.total.toFixed(2).replace('.', ',')}<br>
         </div>
-        <div style="font-weight: bold; margin-bottom: 10px;">Itens da Compra:</div>
+        <div style="font-weight: bold; margin-bottom: 10px;">Variação de Preços por Item:</div>
       `;
 
       ultimaComparacao.itens.forEach(item => {
+        let historicoAnterior = encontrarPrecoAnterior(item.nome, ultimaComparacao.id);
+        let variacaoHtml = '';
+
+        if (historicoAnterior) {
+          let diff = item.preco - historicoAnterior.preco;
+          if (diff < 0) {
+            variacaoHtml = `<br><small style="color: var(--success-color);">📉 Economia de R$ ${Math.abs(diff).toFixed(2).replace('.', ',')} (Antigo: R$ ${historicoAnterior.preco.toFixed(2).replace('.', ',')} em ${historicoAnterior.estabelecimento})</small>`;
+          } else if (diff > 0) {
+            variacaoHtml = `<br><small style="color: var(--danger-color);">📈 Mais caro R$ ${diff.toFixed(2).replace('.', ',')} (Antigo: R$ ${historicoAnterior.preco.toFixed(2).replace('.', ',')} em ${historicoAnterior.estabelecimento})</small>`;
+          } else {
+            variacaoHtml = `<br><small style="color: #7f8c8d;">⚖️ Preço igual à compra anterior (R$ ${historicoAnterior.preco.toFixed(2).replace('.', ',')})</small>`;
+          }
+        } else {
+          variacaoHtml = `<br><small style="color: #7f8c8d;">🆕 Sem registo anterior para comparação</small>`;
+        }
+
         html += `
-          <div class="produto-item">
-            <span class="produto-nome">${item.nome} (${item.qtd}x)</span>
-            <strong style="color: var(--primary-color);">R$ ${(item.qtd * item.preco).toFixed(2).replace('.', ',')}</strong>
+          <div class="comparativo-card-item">
+            <div>
+              <span class="produto-nome"><strong>${item.nome}</strong> (${item.qtd}x)</span>
+              ${variacaoHtml}
+            </div>
+            <strong style="color: var(--primary-color); white-space: nowrap;">R$ ${(item.qtd * item.preco).toFixed(2).replace('.', ',')}</strong>
           </div>
         `;
       });
+
       container.innerHTML = html;
     }
 
@@ -694,7 +739,7 @@
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
               <strong>${compra.estabelecimento}</strong><br>
-              <small style="color: #7f8c8d;">${compra.data}</small>
+              <small style="color: #7f8c8d;">${compra.data} — ${compra.itens.length} itens</small>
             </div>
             <div style="text-align: right;">
               <span style="color: var(--primary-color); font-weight: bold;">R$ ${compra.total.toFixed(2).replace('.', ',')}</span><br>
@@ -709,14 +754,25 @@
     function removerHistorico(index) {
       historicoCompras.splice(index, 1);
       localStorage.setItem('stokfy_historico', JSON.stringify(historicoCompras));
+      if (historicoCompras.length === 0) {
+        ultimaComparacao = null;
+        localStorage.removeItem('stokfy_ultima_comp');
+      } else {
+        ultimaComparacao = historicoCompras[0];
+        localStorage.setItem('stokfy_ultima_comp', JSON.stringify(ultimaComparacao));
+      }
       renderizarHistorico();
+      renderizarComparativoUltima();
     }
 
     function limparHistorico() {
       if(confirm('Deseja limpar todo o histórico de compras?')) {
         historicoCompras = [];
+        ultimaComparacao = null;
         localStorage.removeItem('stokfy_historico');
+        localStorage.removeItem('stokfy_ultima_comp');
         renderizarHistorico();
+        renderizarComparativoUltima();
       }
     }
 
