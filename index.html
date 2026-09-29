@@ -1,1190 +1,403 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Stokfy</title>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#27ae60">
-  <style>
-    :root {
-      --bg-color: #f8f9fa;
-      --card-bg: #ffffff;
-      --text-color: #333333;
-      --primary-color: #27ae60;
-      --primary-hover: #219653;
-      --danger-color: #e74c3c;
-      --warning-color: #f39c12;
-      --success-color: #27ae60;
-      --border-color: #e0e0e0;
-      --input-bg: #ffffff;
-    }
-
-    [data-theme="dark"] {
-      --bg-color: #121212;
-      --card-bg: #1e1e1e;
-      --text-color: #e0e0e0;
-      --primary-color: #2ecc71;
-      --primary-hover: #27ae60;
-      --danger-color: #c0392b;
-      --warning-color: #d35400;
-      --success-color: #2ecc71;
-      --border-color: #333333;
-      --input-bg: #2d2d2d;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    body {
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      padding-bottom: 80px;
-      overflow-x: hidden;
-      transition: background-color 0.3s, color 0.3s;
-    }
-
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 15px;
-      background-color: var(--card-bg);
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .logo-area {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .logo-area h1 {
-      font-size: 1.3rem;
-      color: var(--primary-color);
-    }
-
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .theme-toggle {
-      background: none;
-      border: 1px solid var(--border-color);
-      color: var(--text-color);
-      padding: 5px 10px;
-      border-radius: 15px;
-      cursor: pointer;
-      font-size: 0.8rem;
-    }
-
-    .container {
-      max-width: 600px;
-      margin: 10px auto;
-      padding: 0 10px;
-      width: 100%;
-    }
-
-    .tab-content {
-      display: none !important;
-    }
-
-    .tab-content.active {
-      display: block !important;
-    }
-
-    .quick-actions {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
-      margin-bottom: 12px;
-    }
-
-    .quick-pill {
-      background-color: var(--card-bg);
-      border: 1px solid var(--primary-color);
-      color: var(--primary-color);
-      padding: 8px 4px;
-      border-radius: 10px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 3px;
-      text-align: center;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-      transition: background-color 0.2s, color 0.2s;
-    }
-
-    .quick-pill:hover {
-      background-color: var(--primary-color);
-      color: white;
-    }
-
-    .teto-dashboard {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 12px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    }
-
-    .teto-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      text-align: center;
-      margin-top: 8px;
-    }
-
-    .teto-box {
-      background-color: var(--bg-color);
-      padding: 8px 4px;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
-    }
-
-    .teto-box span {
-      font-size: 0.65rem;
-      text-transform: uppercase;
-      color: #7f8c8d;
-      font-weight: bold;
-      display: block;
-      margin-bottom: 2px;
-    }
-
-    .teto-box strong {
-      font-size: 0.9rem;
-      font-weight: bold;
-    }
-
-    .card {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 14px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-      margin-bottom: 12px;
-    }
-
-    .card-title {
-      font-size: 1.05rem;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .btn {
-      background-color: var(--primary-color);
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      width: 100%;
-      font-size: 0.95rem;
-      transition: background-color 0.2s;
-    }
-
-    .btn:hover {
-      background-color: var(--primary-hover);
-    }
-
-    .btn-blue {
-      background-color: #2980b9;
-    }
-    .btn-blue:hover {
-      background-color: #2471a3;
-    }
-
-    .btn-outline {
-      background: transparent;
-      border: 1px solid var(--primary-color);
-      color: var(--primary-color);
-      padding: 8px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.85rem;
-    }
-
-    .input-group {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-
-    input[type="text"], input[type="number"], select {
-      flex: 1;
-      padding: 10px 12px;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      background-color: var(--input-bg);
-      color: var(--text-color);
-      font-size: 0.95rem;
-      min-width: 0;
-    }
-
-    .sugestoes-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 12px;
-    }
-
-    .sugestao-pill {
-      background-color: var(--bg-color);
-      border: 1px solid var(--border-color);
-      color: var(--text-color);
-      padding: 6px 10px;
-      border-radius: 15px;
-      font-size: 0.75rem;
-      cursor: pointer;
-      font-weight: 500;
-      transition: all 0.2s;
-    }
-
-    .sugestao-pill:hover {
-      border-color: var(--primary-color);
-      color: var(--primary-color);
-      background-color: rgba(39, 174, 96, 0.05);
-    }
-
-    .setor-section {
-      margin-top: 12px;
-      border-top: 1px dashed var(--border-color);
-      padding-top: 12px;
-    }
-
-    .setor-title {
-      font-size: 0.8rem;
-      font-weight: bold;
-      color: var(--primary-color);
-      margin-bottom: 8px;
-      text-transform: uppercase;
-    }
-
-    .produto-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background-color: var(--bg-color);
-      padding: 8px 10px;
-      border-radius: 8px;
-      margin-bottom: 6px;
-      border: 1px solid var(--border-color);
-      gap: 6px;
-    }
-
-    .produto-info {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex: 1;
-      min-width: 0;
-    }
-
-    .produto-nome {
-      font-size: 0.9rem;
-      word-break: break-word;
-    }
-
-    .produto-controles {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-shrink: 0;
-    }
-
-    .qtd-control {
-      display: flex;
-      align-items: center;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      overflow: hidden;
-      background: var(--card-bg);
-    }
-
-    .qtd-control button {
-      background: none;
-      border: none;
-      padding: 4px 8px;
-      cursor: pointer;
-      color: var(--text-color);
-      font-weight: bold;
-    }
-
-    .qtd-control span {
-      padding: 0 4px;
-      font-size: 0.85rem;
-    }
-
-    .preco-input {
-      width: 65px;
-      padding: 5px;
-      text-align: right;
-      font-size: 0.9rem;
-    }
-
-    .btn-delete {
-      background-color: var(--danger-color);
-      color: white;
-      border: none;
-      width: 28px;
-      height: 28px;
-      border-radius: 6px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      flex-shrink: 0;
-      font-size: 0.8rem;
-    }
-
-    .total-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 1rem;
-      font-weight: bold;
-      margin-top: 15px;
-      padding-top: 12px;
-      border-top: 2px solid var(--border-color);
-    }
-
-    .total-valor {
-      color: var(--primary-color);
-    }
-
-    .comparativo-card-item {
-      background-color: var(--bg-color);
-      border: 1px solid var(--border-color);
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
-
-    nav.bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background-color: var(--card-bg);
-      border-top: 1px solid var(--border-color);
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      padding: 6px 0;
-      z-index: 1000;
-    }
-
-    .nav-item {
-      background: none;
-      border: none;
-      color: var(--text-color);
-      font-size: 0.7rem;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-    }
-
-    .nav-item.active {
-      color: var(--primary-color);
-      font-weight: bold;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stokfy</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#27ae60">
+<style>
+:root{--bg:#f8f9fa;--card:#fff;--tx:#333;--pri:#27ae60;--prih:#219653;--dan:#e74c3c;--warn:#f39c12;--bd:#e0e0e0;--inp:#fff;--mut:#7f8c8d}
+[data-theme=dark]{--bg:#121212;--card:#1e1e1e;--tx:#e0e0e0;--pri:#2ecc71;--prih:#27ae60;--dan:#c0392b;--warn:#d35400;--bd:#333;--inp:#2d2d2d}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif}
+body{background:var(--bg);color:var(--tx);padding-bottom:80px;overflow-x:hidden}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px 15px;background:var(--card);border-bottom:1px solid var(--bd)}
+header h1{font-size:1.3rem;color:var(--pri)}
+.hr{display:flex;gap:8px}
+.sm{background:none;border:1px solid var(--bd);color:var(--tx);padding:5px 10px;border-radius:15px;cursor:pointer;font-size:.8rem}
+.container{max-width:600px;margin:10px auto;padding:0 10px}
+.tab-content{display:none}.tab-content.active{display:block}
+.qa{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
+.qp{background:var(--card);border:1px solid var(--pri);color:var(--pri);padding:8px 4px;border-radius:10px;font-size:.75rem;font-weight:600;cursor:pointer}
+.card,.teto{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;box-shadow:0 4px 6px rgba(0,0,0,.05);margin-bottom:12px}
+.teto{padding:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;margin-top:8px}
+.box{background:var(--bg);padding:8px 4px;border-radius:8px;border:1px solid var(--bd)}
+.box span{font-size:.65rem;color:var(--mut);font-weight:bold;display:block}
+.box strong{font-size:.9rem}
+.ct{font-size:1.05rem;margin-bottom:8px}
+.mut{font-size:.8rem;color:var(--mut);margin-bottom:12px}
+.btn{background:var(--pri);color:#fff;border:none;padding:10px 15px;border-radius:8px;cursor:pointer;font-weight:bold;width:100%;font-size:.95rem}
+.btn:hover{background:var(--prih)}.blue{background:#2980b9}
+.out{background:transparent;border:1px solid var(--pri);color:var(--pri);padding:4px 8px;border-radius:6px;cursor:pointer;font-size:.75rem}
+.ig{display:flex;gap:8px;margin-bottom:12px}
+input[type=text],input[type=number]{flex:1;padding:10px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--inp);color:var(--tx);font-size:.95rem;min-width:0}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.pill{background:var(--bg);border:1px solid var(--bd);color:var(--tx);padding:6px 10px;border-radius:15px;font-size:.75rem;cursor:pointer}
+.setor{margin-top:12px;border-top:1px dashed var(--bd);padding-top:12px}
+.setor b{display:block;font-size:.8rem;color:var(--pri);margin-bottom:8px}
+.item{display:flex;align-items:center;justify-content:space-between;background:var(--bg);padding:8px 10px;border-radius:8px;margin-bottom:6px;border:1px solid var(--bd);gap:6px}
+.info{display:flex;align-items:center;gap:8px;flex:1;min-width:0;word-break:break-word;font-size:.9rem}
+.ctl{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.qtd{display:flex;align-items:center;border:1px solid var(--bd);border-radius:6px;background:var(--card)}
+.qtd button{background:none;border:none;padding:4px 8px;cursor:pointer;color:var(--tx);font-weight:bold}
+.qtd span{padding:0 4px;font-size:.85rem}
+.preco{width:65px!important;flex:none!important;padding:5px!important;text-align:right;font-size:.9rem!important}
+.del{background:var(--dan);color:#fff;border:none;width:28px;height:28px;border-radius:6px;cursor:pointer}
+.total{display:flex;justify-content:space-between;font-weight:bold;margin-top:15px;padding-top:12px;border-top:2px solid var(--bd)}
+.total span:last-child{color:var(--pri)}
+nav{position:fixed;bottom:0;left:0;width:100%;background:var(--card);border-top:1px solid var(--bd);display:grid;grid-template-columns:repeat(4,1fr);padding:6px 0;z-index:9}
+.nav-item{background:none;border:none;color:var(--tx);font-size:.7rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+.nav-item.active{color:var(--pri);font-weight:bold}
+small{color:var(--mut);font-size:.75rem}
+</style>
 </head>
 <body data-theme="light">
+<header>
+  <h1>🛒 Stokfy</h1>
+  <div class="hr">
+    <button class="sm" id="btnInstalar" hidden onclick="instalar()">⬇️ Instalar</button>
+    <button class="sm" onclick="toggleTheme()">🌓 Tema</button>
+  </div>
+</header>
 
-  <header>
-    <div class="logo-area">
-      <span>🛒</span>
-      <h1>Stokfy</h1>
+<div class="container">
+  <div id="tab-inicio" class="tab-content active">
+    <div class="qa">
+      <button class="qp" onclick="reutilizarUltima()">📥<br>Reutilizar</button>
+      <button class="qp" onclick="gerarListaDaDispensa()">📦<br>Da Dispensa</button>
+      <button class="qp" onclick="definirTeto()">🎯<br>Teto mensal</button>
     </div>
-    <div class="header-right">
-      <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()">🌓 Tema</button>
+    <div class="teto">
+      <div style="display:flex;justify-content:space-between"><strong style="font-size:.9rem">Orçamento de <span id="mesNome"></span></strong><span id="tetoStatus" style="font-size:.7rem;font-weight:bold"></span></div>
+      <div class="grid3">
+        <div class="box"><span>Teto</span><strong id="valTeto">-</strong></div>
+        <div class="box"><span>Gasto no mês</span><strong id="valGasto" style="color:var(--pri)">R$ 0,00</strong></div>
+        <div class="box"><span>Restante</span><strong id="valRest">R$ 0,00</strong></div>
+      </div>
+      <p id="tetoApos" style="font-size:.75rem;text-align:center;margin-top:8px"></p>
     </div>
-  </header>
-
-  <div class="container">
-    <!-- ABA 1: INÍCIO (CARRINHO DE COMPRAS) -->
-    <div id="tab-inicio" class="tab-content active">
-      
-      <div class="quick-actions">
-        <button class="quick-pill" onclick="reutilizarUltima()">
-          <span style="font-size: 1.1rem;">📥</span> Reutilizar
-        </button>
-        <button class="quick-pill" onclick="gerarListaDaDispensa()">
-          <span style="font-size: 1.1rem;">📦</span> Da Dispensa
-        </button>
-        <button class="quick-pill" onclick="definirTeto()">
-          <span style="font-size: 1.1rem;">🎯</span> Definir Teto
-        </button>
-      </div>
-
-      <!-- PAINEL DE TETO ORÇAMENTÁRIO -->
-      <div class="teto-dashboard">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-          <strong style="font-size: 0.9rem;">Controlo Orçamentário</strong>
-          <span id="tetoStatusAlerta" style="font-size: 0.7rem; font-weight: bold; color: var(--primary-color);">Dentro do Limite</span>
-        </div>
-        <div class="teto-grid">
-          <div class="teto-box">
-            <span>Teto</span>
-            <strong id="valTetoDisplay" style="color: var(--text-color);">R$ 0,00</strong>
-          </div>
-          <div class="teto-box">
-            <span>Gasto</span>
-            <strong id="valGastoDisplay" style="color: var(--primary-color);">R$ 0,00</strong>
-          </div>
-          <div class="teto-box">
-            <span>Restante</span>
-            <strong id="valRestanteDisplay" style="color: var(--primary-color);">R$ 0,00</strong>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">🛒 Lista de Compras Atual</div>
-        <p style="font-size: 0.8rem; color: #7f8c8d; margin-bottom: 12px;">Itens agrupados automaticamente por setor para otimizar o seu percurso.</p>
-
-        <div class="input-group">
-          <input type="text" id="produtoInput" placeholder="Produto (ex: Arroz, Azeite...)">
-          <button class="btn" style="width: auto; padding: 10px 14px;" onclick="adicionarProduto()">+</button>
-        </div>
-
-        <div id="listaContainer"></div>
-
-        <div class="total-container">
-          <span>Total Previsto:</span>
-          <span class="total-valor" id="totalCarrinho">R$ 0,00</span>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Fechar e Salvar Compra Atual</div>
-        <p style="font-size: 0.8rem; color: #7f8c8d; margin-bottom: 12px;">Atualiza o estoque da dispensa ao fechar a compra.</p>
-        <div style="margin-bottom: 10px;">
-          <input type="text" id="estabInput" placeholder="Nome do Estabelecimento (ex: Extra)">
-        </div>
-        <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px; font-size: 0.85rem;">
-          <input type="checkbox" id="atualizarDispensaCheck" checked style="width: 16px; height: 16px;">
-          <label for="atualizarDispensaCheck">Atualizar Dispensa automaticamente</label>
-        </div>
-        <button class="btn btn-blue" onclick="fecharCompra()">Registar Compra e Comparar</button>
-      </div>
+    <div class="card">
+      <div class="ct">🛒 Lista de Compras Atual</div>
+      <p class="mut">Marque os itens que pegou. Só os marcados entram na dispensa ao fechar.</p>
+      <div class="ig"><input type="text" id="produtoInput" placeholder="Produto (ex: Arroz)"><button class="btn" style="width:auto" onclick="adicionarProduto()">+</button></div>
+      <div id="lista"></div>
+      <div class="total"><span>Total previsto:</span><span id="totalCarrinho">R$ 0,00</span></div>
     </div>
-
-    <!-- ABA 2: DISPENSA (ESTOQUE DOMÉSTICO COM ADIAR ALERTA) -->
-    <div id="tab-dispensa" class="tab-content">
-      <div class="card">
-        <div class="card-title">📦 Dispensa Doméstica</div>
-        <p style="font-size: 0.8rem; color: #7f8c8d; margin-bottom: 10px;">Toque nos itens frequentes abaixo para adicionar com 1 clique:</p>
-
-        <div class="sugestoes-grid">
-          <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Café')">+ ☕ Café</button>
-          <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Azeite')">+ 🫒 Azeite</button>
-          <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Arroz')">+ 🍚 Arroz</button>
-          <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Feijão')">+ 🫘 Feijão</button>
-          <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Leite')">+ 🥛 Leite</button>
-          <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Açúcar')">+ 🧂 Açúcar</button>
-          <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Óleo')">+ 🌻 Óleo</button>
-          <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Sal')">+ 🧂 Sal</button>
-          <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Papel Higiênico')">+ 🧻 Papel Higiênico</button>
-          <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Detergente')">+ 🧽 Detergente</button>
-          <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Sabão em Pó')">+ 🧼 Sabão em Pó</button>
-          <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Ovos')">+ 🥚 Ovos</button>
-        </div>
-
-        <div style="background: var(--bg-color); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 12px;">
-          <strong style="font-size: 0.8rem; display: block; margin-bottom: 6px; color: var(--primary-color);">Ou Adicionar Outro Item Manualmente</strong>
-          <div style="display: flex; flex-direction: column; gap: 6px;">
-            <input type="text" id="dispensaNomeInput" placeholder="Nome do item (ex: Farinha)">
-            <div style="display: flex; gap: 6px;">
-              <input type="number" id="dispensaQtdInput" placeholder="Qtd Atual" value="1" step="0.1" style="flex: 1;">
-              <input type="number" id="dispensaMinInput" placeholder="Mínimo" value="1" step="0.1" style="flex: 1;">
-            </div>
-            <button class="btn" style="padding: 8px; font-size: 0.85rem;" onclick="adicionarItemDispensa()">Adicionar Personalizado</button>
-          </div>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <strong style="font-size: 0.85rem;">Itens em Estoque:</strong>
-          <span id="alertaDispensaCount" style="font-size: 0.7rem; font-weight: bold; color: var(--warning-color);">0 itens acabando</span>
-        </div>
-
-        <div id="dispensaContainer">
-          <p style="font-size: 0.85rem; color: #7f8c8d;">Sua dispensa está vazia.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- ABA 3: COMPARATIVO -->
-    <div id="tab-comparativo" class="tab-content">
-      <div class="card">
-        <div class="card-title">📈 Comparativo da Última Compra</div>
-        <p style="font-size: 0.8rem; color: #7f8c8d; margin-bottom: 12px;">Análise detalhada de variação de preços em relação às compras anteriores.</p>
-        <div id="comparativoUltimaContainer">
-          <p style="font-size: 0.85rem; color: #7f8c8d;">Nenhuma compra registada recentemente para comparativo.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- ABA 4: HISTÓRICO E MERCADO -->
-    <div id="tab-mercado" class="tab-content">
-      <div class="card">
-        <div class="card-title">📊 Histórico de Compras</div>
-        <p style="font-size: 0.8rem; color: #7f8c8d; margin-bottom: 12px;">Acompanhe seus gastos totais e histórico de estabelecimentos.</p>
-        
-        <div style="background-color: var(--bg-color); padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 12px; border: 1px solid var(--border-color);">
-          <span style="font-size: 0.75rem; text-transform: uppercase; color: #7f8c8d; font-weight: bold;">Total Geral em Alimentação</span>
-          <div id="totalGeralHistorico" style="font-size: 1.3rem; font-weight: bold; color: var(--primary-color); margin-top: 4px;">R$ 0,00</div>
-        </div>
-
-        <div style="font-weight: bold; margin-bottom: 8px; font-size: 0.9rem;">Lista de Compras Efetuadas:</div>
-        <div id="historicoContainer">
-          <p style="font-size: 0.85rem; color: #7f8c8d;">Nenhum registo de compra efetuado ainda.</p>
-        </div>
-
-        <!-- SEÇÃO DE GESTÃO DE DADOS (BACKUP & RESTORE) -->
-        <div style="margin-top: 20px; border-top: 1px dashed var(--border-color); padding-top: 15px;">
-          <strong style="font-size: 0.9rem; display: block; margin-bottom: 8px; color: var(--primary-color);">🔒 Segurança de Dados (Backup)</strong>
-          <p style="font-size: 0.75rem; color: #7f8c8d; margin-bottom: 10px;">Exporte seus dados para não perder nada ao trocar de celular.</p>
-          <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-            <button class="btn-outline" style="flex: 1; font-size: 0.8rem;" onclick="exportarBackup()">💾 Exportar Backup</button>
-            <button class="btn-outline" style="flex: 1; font-size: 0.8rem;" onclick="document.getElementById('importFile').click()">📂 Importar Backup</button>
-            <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importarBackup(event)">
-          </div>
-        </div>
-
-        <button class="btn-outline" style="width: 100%; border-color: var(--danger-color); color: var(--danger-color); margin-top: 15px;" onclick="limparHistorico()">Limpar Histórico de Compras</button>
-      </div>
+    <div class="card">
+      <div class="ct">Fechar Compra</div>
+      <input type="text" id="estabInput" placeholder="Estabelecimento (ex: Extra)" style="width:100%;margin-bottom:10px">
+      <label style="display:flex;gap:8px;font-size:.85rem;margin-bottom:12px"><input type="checkbox" id="atualizarDispensaCheck" checked>Atualizar dispensa automaticamente</label>
+      <button class="btn blue" onclick="fecharCompra()">Registrar Compra e Comparar</button>
     </div>
   </div>
 
-  <nav class="bottom-nav">
-    <button class="nav-item active" onclick="mudarAba('inicio', this)">
-      <span style="font-size: 1.1rem;">🛒</span> Carrinho
-    </button>
-    <button class="nav-item" onclick="mudarAba('dispensa', this)">
-      <span style="font-size: 1.1rem;">📦</span> Dispensa
-    </button>
-    <button class="nav-item" onclick="mudarAba('comparativo', this)">
-      <span style="font-size: 1.1rem;">📈</span> Preços
-    </button>
-    <button class="nav-item" onclick="mudarAba('mercado', this)">
-      <span style="font-size: 1.1rem;">📊</span> Histórico
-    </button>
-  </nav>
+  <div id="tab-dispensa" class="tab-content">
+    <div class="card">
+      <div class="ct">📦 Dispensa Doméstica</div>
+      <div class="pills" id="pills"></div>
+      <div style="background:var(--bg);padding:10px;border-radius:8px;border:1px solid var(--bd);margin-bottom:12px;display:flex;flex-direction:column;gap:6px">
+        <strong style="font-size:.8rem;color:var(--pri)">Adicionar outro item</strong>
+        <input type="text" id="dNome" placeholder="Nome (ex: Farinha)">
+        <div style="display:flex;gap:6px"><input type="number" id="dQtd" value="1" step="0.1" min="0"><input type="number" id="dMin" value="1" step="0.1" min="0"></div>
+        <small>Quantidade atual e mínimo, nessa ordem.</small>
+        <button class="btn" style="padding:8px" onclick="adicionarItemDispensa()">Adicionar</button>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px"><strong style="font-size:.85rem">Itens em estoque</strong><span id="alertaCount" style="font-size:.7rem;font-weight:bold;color:var(--warn)"></span></div>
+      <div id="dispensa"></div>
+    </div>
+  </div>
 
-  <script>
-    let produtos = JSON.parse(localStorage.getItem('stokfy_produtos')) || [];
-    let dispensa = JSON.parse(localStorage.getItem('stokfy_dispensa')) || [];
-    let historicoCompras = JSON.parse(localStorage.getItem('stokfy_historico')) || [];
-    let ultimaComparacao = JSON.parse(localStorage.getItem('stokfy_ultima_comp')) || null;
-    let tetoOrcamento = parseFloat(localStorage.getItem('stokfy_teto')) || 0;
+  <div id="tab-comparativo" class="tab-content">
+    <div class="card"><div class="ct">📈 Comparativo da Última Compra</div><div id="comp"></div></div>
+  </div>
 
-    function salvarDados() {
-      localStorage.setItem('stokfy_produtos', JSON.stringify(produtos));
-      renderizarLista();
-    }
-
-    function salvarDispensa() {
-      localStorage.setItem('stokfy_dispensa', JSON.stringify(dispensa));
-      renderizarDispensa();
-    }
-
-    function determinarSetor(nome) {
-      const n = nome.toLowerCase();
-      if (n.includes('sabão') || n.includes('detergente') || n.includes('amaciante') || n.includes('limpeza') || n.includes('desinfetante') || n.includes('esponja') || n.includes('papel higiênico') || n.includes('alvejante') || n.includes('multiuso')) return 'LIMPEZA';
-      if (n.includes('carne') || n.includes('frango') || n.includes('bife') || n.includes('porco') || n.includes('linguiça') || n.includes('salsicha') || n.includes('bacon') || n.includes('presunto') || n.includes('peixe') || n.includes('alcatra')) return 'CARNES';
-      if (n.includes('leite') || n.includes('queijo') || n.includes('nata') || n.includes('requeijão') || n.includes('manteiga') || n.includes('iogurte') || n.includes('margarina') || n.includes('ovos')) return 'FRIOS E LATICÍNIOS';
-      if (n.includes('maçã') || n.includes('banana') || n.includes('tomate') || n.includes('batata') || n.includes('cebola') || n.includes('alface') || n.includes('cenoura') || n.includes('fruta') || n.includes('verdura') || n.includes('alho') || n.includes('limão')) return 'HORTIFRUTI';
-      if (n.includes('cerveja') || n.includes('refrigerante') || n.includes('suco') || n.includes('água') || n.includes('vinho')) return 'BEBIDAS';
-      if (n.includes('pão') || n.includes('bolo') || n.includes('biscoito')) return 'PADARIA';
-      return 'MERCEARIA';
-    }
-
-    function adicionarProduto() {
-      const input = document.getElementById('produtoInput');
-      const nome = input.value.trim();
-      if(!nome) return;
-
-      produtos.push({
-        id: Date.now(),
-        nome: nome,
-        setor: determinarSetor(nome),
-        qtd: 1,
-        preco: 0.0,
-        comprado: false
-      });
-      input.value = '';
-      salvarDados();
-    }
-
-    function removerProduto(id) {
-      produtos = produtos.filter(p => p.id !== id);
-      salvarDados();
-    }
-
-    function alterarQtd(id, delta) {
-      const p = produtos.find(item => item.id === id);
-      if(p) {
-        p.qtd += delta;
-        if(p.qtd < 1) p.qtd = 1;
-        salvarDados();
-      }
-    }
-
-    function atualizarPreco(id, valor) {
-      const p = produtos.find(item => item.id === id);
-      if(p) {
-        p.preco = parseFloat(valor) || 0;
-        salvarKpi();
-      }
-    }
-
-    function toggleComprado(id) {
-      const p = produtos.find(item => item.id === id);
-      if(p) {
-        p.comprado = !p.comprado;
-        salvarDados();
-      }
-    }
-
-    function renderizarLista() {
-      const container = document.getElementById('listaContainer');
-      if (produtos.length === 0) {
-        container.innerHTML = '<p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 12px;">Sua lista de compras está vazia.</p>';
-        document.getElementById('totalCarrinho').innerText = 'R$ 0,00';
-        salvarKpi();
-        return;
-      }
-      container.innerHTML = '';
-
-      const setoresObj = {};
-      produtos.forEach(p => {
-        if(!setoresObj[p.setor]) setoresObj[p.setor] = [];
-        setoresObj[p.setor].push(p);
-      });
-
-      for(let setor in setoresObj) {
-        let setorDiv = document.createElement('div');
-        setorDiv.className = 'setor-section';
-        setorDiv.innerHTML = `<div class="setor-title">📍 SETOR: ${setor}</div>`;
-
-        setoresObj[setor].forEach(p => {
-          let itemDiv = document.createElement('div');
-          itemDiv.className = 'produto-item';
-          itemDiv.innerHTML = `
-            <div class="produto-info">
-              <input type="checkbox" ${p.comprado ? 'checked' : ''} onchange="toggleComprado(${p.id})">
-              <span class="produto-nome" style="${p.comprado ? 'text-decoration: line-through; opacity: 0.6;' : ''}">${p.nome}</span>
-            </div>
-            <div class="produto-controles">
-              <div class="qtd-control">
-                <button onclick="alterarQtd(${p.id}, -1)">-</button>
-                <span>${p.qtd}</span>
-                <button onclick="alterarQtd(${p.id}, 1)">+</button>
-              </div>
-              <input type="number" step="0.01" class="preco-input" value="${p.preco > 0 ? p.preco.toFixed(2) : '0,00'}" oninput="atualizarPreco(${p.id}, this.value)">
-              <button class="btn-delete" onclick="removerProduto(${p.id})">✕</button>
-            </div>
-          `;
-          setorDiv.appendChild(itemDiv);
-        });
-        container.appendChild(setorDiv);
-      }
-      salvarKpi();
-    }
-
-    function salvarKpi() {
-      let totalCarrinho = produtos.reduce((acc, p) => acc + (p.qtd * p.preco), 0);
-      document.getElementById('totalCarrinho').innerText = 'R$ ' + totalCarrinho.toFixed(2).replace('.', ',');
-      atualizarTetoInfo();
-    }
-
-    function atualizarTetoInfo() {
-      const valTetoEl = document.getElementById('valTetoDisplay');
-      const valGastoEl = document.getElementById('valGastoDisplay');
-      const valRestanteEl = document.getElementById('valRestanteDisplay');
-      const statusAlertaEl = document.getElementById('tetoStatusAlerta');
-
-      let gastoTotal = historicoCompras.reduce((acc, c) => acc + c.total, 0);
-      valGastoEl.innerText = 'R$ ' + gastoTotal.toFixed(2).replace('.', ',');
-
-      if (tetoOrcamento > 0) {
-        valTetoEl.innerText = 'R$ ' + tetoOrcamento.toFixed(2).replace('.', ',');
-        let restante = tetoOrcamento - gastoTotal;
-        valRestanteEl.innerText = 'R$ ' + restante.toFixed(2).replace('.', ',');
-
-        if (gastoTotal > tetoOrcamento) {
-          valRestanteEl.style.color = 'var(--danger-color)';
-          statusAlertaEl.innerHTML = '<span style="color: var(--danger-color);">⚠️ Teto Ultrapassado!</span>';
-        } else {
-          valRestanteEl.style.color = 'var(--primary-color)';
-          statusAlertaEl.innerHTML = '<span style="color: var(--primary-color);">✅ Dentro do Limite</span>';
-        }
-      } else {
-        valTetoEl.innerText = 'Não definido';
-        valRestanteEl.innerText = 'R$ 0,00';
-        valRestanteEl.style.color = 'var(--text-color)';
-        statusAlertaEl.innerText = 'Defina um Teto';
-      }
-    }
-
-    function definirTeto() {
-      let novoTeto = prompt('Digite o valor do teto orçamentário (R$):', tetoOrcamento > 0 ? tetoOrcamento : '');
-      if (novoTeto !== null) {
-        tetoOrcamento = parseFloat(novoTeto.replace(',', '.')) || 0;
-        localStorage.setItem('stokfy_teto', tetoOrcamento);
-        salvarKpi();
-      }
-    }
-
-    function adicionarSugestaoDispensa(nomeItem) {
-      let existente = dispensa.find(d => d.nome.toLowerCase() === nomeItem.toLowerCase());
-      if (existente) {
-        existente.qtd += 1;
-        existente.adiadoAte = null; // Reseta o adiamento ao adicionar mais
-      } else {
-        dispensa.push({
-          id: Date.now() + Math.random(),
-          nome: nomeItem,
-          setor: determinarSetor(nomeItem),
-          qtd: 1,
-          minimo: 1,
-          adiadoAte: null
-        });
-      }
-      salvarDispensa();
-    }
-
-    function adicionarItemDispensa() {
-      const nomeInput = document.getElementById('dispensaNomeInput');
-      const qtdInput = document.getElementById('dispensaQtdInput');
-      const minInput = document.getElementById('dispensaMinInput');
-
-      const nome = nomeInput.value.trim();
-      if(!nome) return;
-
-      dispensa.push({
-        id: Date.now(),
-        nome: nome,
-        setor: determinarSetor(nome),
-        qtd: parseFloat(qtdInput.value) || 1,
-        minimo: parseFloat(minInput.value) || 1,
-        adiadoAte: null
-      });
-
-      nomeInput.value = '';
-      qtdInput.value = '1';
-      minInput.value = '1';
-      salvarDispensa();
-    }
-
-    function alterarQtdDispensa(id, delta) {
-      const item = dispensa.find(d => d.id === id);
-      if(item) {
-        item.qtd += delta;
-        if(item.qtd < 0) item.qtd = 0;
-        item.adiadoAte = null; // Reseta o adiamento ao alterar qtd
-        salvarDispensa();
-      }
-    }
-
-    function adiarAlertaDispensa(id) {
-      const item = dispensa.find(d => d.id === id);
-      if (item) {
-        // Adia o alerta por 7 dias a partir de hoje
-        let dataFutura = new Date();
-        dataFutura.setDate(dataFutura.getDate() + 7);
-        item.adiadoAte = dataFutura.getTime();
-        salvarDispensa();
-      }
-    }
-
-    function removerItemDispensa(id) {
-      dispensa = dispensa.filter(d => d.id !== id);
-      salvarDispensa();
-    }
-
-    function renderizarDispensa() {
-      const container = document.getElementById('dispensaContainer');
-      const alertaCountEl = document.getElementById('alertaDispensaCount');
-      const agora = Date.now();
-
-      // Conta apenas os itens que estão baixos E cujos alertas NÃO estão adiados
-      let itensBaixosReais = dispensa.filter(d => d.qtd <= d.minimo && (!d.adiadoAte || d.adiadoAte < agora));
-      alertaCountEl.innerText = `${itensBaixosReais.length} itens acabando`;
-
-      if (dispensa.length === 0) {
-        container.innerHTML = '<p style="font-size: 0.85rem; color: #7f8c8d;">Sua dispensa está vazia.</p>';
-        return;
-      }
-
-      container.innerHTML = '';
-      dispensa.forEach(item => {
-        let isBaixo = item.qtd <= item.minimo;
-        let isAdiado = isBaixo && item.adiadoAte && item.adiadoAte >= agora;
-        
-        let div = document.createElement('div');
-        div.className = 'produto-item';
-        div.style.borderColor = (isBaixo && !isAdiado) ? 'var(--warning-color)' : 'var(--border-color)';
-        div.innerHTML = `
-          <div class="produto-info">
-            <span style="font-size: 1.1rem;">${(isBaixo && !isAdiado) ? '⚠️' : '📦'}</span>
-            <div>
-              <span class="produto-nome"><strong>${item.nome}</strong></span><br>
-              <small style="color: #7f8c8d; font-size: 0.75rem;">Setor: ${item.setor} | Mín: ${item.minimo} ${isAdiado ? '— ⏱️ Alerta adiado' : ''}</small>
-            </div>
-          </div>
-          <div class="produto-controles">
-            ${isBaixo && !isAdiado ? `<button class="btn-outline" style="padding: 3px 6px; font-size: 0.7rem;" onclick="adiarAlertaDispensa(${item.id})">Adiar</button>` : ''}
-            <div class="qtd-control">
-              <button onclick="alterarQtdDispensa(${item.id}, -1)">-</button>
-              <span style="color: ${(isBaixo && !isAdiado) ? 'var(--warning-color)' : 'inherit'}; font-weight: bold;">${item.qtd}</span>
-              <button onclick="alterarQtdDispensa(${item.id}, 1)">+</button>
-            </div>
-            <button class="btn-delete" onclick="removerItemDispensa(${item.id})">✕</button>
-          </div>
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    function gerarListaDaDispensa() {
-      const agora = Date.now();
-      // Considera apenas itens críticos e não adiados
-      let itensCriticos = dispensa.filter(d => d.qtd <= d.minimo && (!d.adiadoAte || d.adiadoAte < agora));
-      
-      if (itensCriticos.length === 0) {
-        alert('Nenhum item crítico pendente na dispensa no momento.');
-        return;
-      }
-
-      let adicionados = 0;
-      itensCriticos.forEach(critico => {
-        let jaExiste = produtos.some(p => p.nome.toLowerCase() === critico.nome.toLowerCase());
-        if (!jaExiste) {
-          produtos.push({
-            id: Date.now() + Math.random(),
-            nome: critico.nome,
-            setor: critico.setor,
-            qtd: Math.max(1, critico.minimo * 2 - critico.qtd),
-            preco: 0.0,
-            comprado: false
-          });
-          adicionados++;
-        }
-      });
-
-      salvarDados();
-      mudarAba('inicio', document.querySelectorAll('.nav-item')[0]);
-      alert(`${adicionados} itens em falta foram adicionados automaticamente à sua lista de compras!`);
-    }
-
-    function fecharCompra() {
-      const estabInput = document.getElementById('estabInput');
-      const atualizarDispensaCheck = document.getElementById('atualizarDispensaCheck');
-      const nomeEstab = estabInput.value.trim() || 'Estabelecimento Local';
-      let total = produtos.reduce((acc, p) => acc + (p.qtd * p.preco), 0);
-
-      if (total <= 0) {
-        alert('Adicione produtos e preços antes de fechar a compra.');
-        return;
-      }
-
-      if (atualizarDispensaCheck.checked) {
-        produtos.forEach(prod => {
-          let itemDispensa = dispensa.find(d => d.nome.toLowerCase() === prod.nome.toLowerCase());
-          if (itemDispensa) {
-            itemDispensa.qtd += prod.qtd;
-            itemDispensa.adiadoAte = null; // Reseta o adiamento ao comprar
-          } else {
-            dispensa.push({
-              id: Date.now() + Math.random(),
-              nome: prod.nome,
-              setor: prod.setor,
-              qtd: prod.qtd,
-              minimo: 1,
-              adiadoAte: null
-            });
-          }
-        });
-        salvarDispensa();
-      }
-
-      let novaCompra = {
-        id: Date.now(),
-        estabelecimento: nomeEstab,
-        total: total,
-        itens: [...produtos],
-        data: new Date().toLocaleDateString()
-      };
-
-      historicoCompras.unshift(novaCompra);
-      localStorage.setItem('stokfy_historico', JSON.stringify(historicoCompras));
-
-      ultimaComparacao = novaCompra;
-      localStorage.setItem('stokfy_ultima_comp', JSON.stringify(ultimaComparacao));
-
-      estabInput.value = '';
-      produtos = [];
-      salvarDados();
-      renderizarHistorico();
-      renderizarComparativoUltima();
-
-      mudarAba('comparativo', document.querySelectorAll('.nav-item')[2]);
-    }
-
-    function reutilizarUltima() {
-      if (!historicoCompras || historicoCompras.length === 0) {
-        alert('Não existem compras anteriores registadas no histórico para reutilizar.');
-        return;
-      }
-
-      const ultimaCompra = historicoCompras[0];
-      if (!ultimaCompra.itens || ultimaCompra.itens.length === 0) {
-        alert('A última compra registada não contém itens.');
-        return;
-      }
-
-      produtos = ultimaCompra.itens.map(item => ({
-        id: Date.now() + Math.random(),
-        nome: item.nome,
-        setor: item.setor || determinarSetor(item.nome),
-        qtd: item.qtd || 1,
-        preco: item.preco || 0.0,
-        comprado: false
-      }));
-
-      salvarDados();
-      mudarAba('inicio', document.querySelectorAll('.nav-item')[0]);
-      alert(`Lista do estabelecimento "${ultimaCompra.estabelecimento}" carregada com sucesso!`);
-    }
-
-    function encontrarPrecoAnterior(nomeProduto, compraAtualId) {
-      for (let i = 0; i < historicoCompras.length; i++) {
-        let compra = historicoCompras[i];
-        if (compra.id === compraAtualId) continue;
-        let itemEncontrado = compra.itens.find(item => item.nome.toLowerCase() === nomeProduto.toLowerCase());
-        if (itemEncontrado && itemEncontrado.preco > 0) {
-          return { preco: itemEncontrado.preco, estabelecimento: compra.estabelecimento, data: compra.data };
-        }
-      }
-      return null;
-    }
-
-    function renderizarComparativoUltima() {
-      const container = document.getElementById('comparativoUltimaContainer');
-      if (!ultimaComparacao) {
-        container.innerHTML = '<p style="font-size: 0.85rem; color: #7f8c8d;">Nenhuma compra registada recentemente para comparativo.</p>';
-        return;
-      }
-
-      let html = `
-        <div style="background: var(--bg-color); padding: 10px; border-radius: 8px; margin-bottom: 12px; border: 1px solid var(--border-color); font-size: 0.85rem;">
-          <strong>Estabelecimento:</strong> ${ultimaComparacao.estabelecimento}<br>
-          <strong>Data:</strong> ${ultimaComparacao.data}<br>
-          <strong>Total da Compra:</strong> R$ ${ultimaComparacao.total.toFixed(2).replace('.', ',')}<br>
+  <div id="tab-mercado" class="tab-content">
+    <div class="card">
+      <div class="ct">📊 Histórico de Compras</div>
+      <div class="box" style="padding:12px;margin-bottom:12px"><span>Total geral</span><strong id="totalGeral" style="font-size:1.3rem;color:var(--pri)"></strong></div>
+      <div id="meses" style="margin-bottom:12px"></div>
+      <div id="hist"></div>
+      <div style="margin-top:20px;border-top:1px dashed var(--bd);padding-top:15px">
+        <strong style="font-size:.9rem;color:var(--pri)">🔒 Backup</strong>
+        <div style="display:flex;gap:8px;margin:10px 0">
+          <button class="out" style="flex:1" onclick="exportarBackup()">💾 Exportar</button>
+          <button class="out" style="flex:1" onclick="$('importFile').click()">📂 Importar</button>
+          <input type="file" id="importFile" accept=".json" hidden onchange="importarBackup(event)">
         </div>
-        <div style="font-weight: bold; margin-bottom: 8px; font-size: 0.9rem;">Variação de Preços por Item:</div>
-      `;
+      </div>
+      <button class="out" style="width:100%;border-color:var(--dan);color:var(--dan)" onclick="limparHistorico()">Limpar Histórico</button>
+    </div>
+  </div>
+</div>
 
-      ultimaComparacao.itens.forEach(item => {
-        let historicoAnterior = encontrarPrecoAnterior(item.nome, ultimaComparacao.id);
-        let variacaoHtml = '';
+<nav>
+  <button class="nav-item active" onclick="mudarAba('inicio',this)">🛒<br>Carrinho</button>
+  <button class="nav-item" onclick="mudarAba('dispensa',this)">📦<br>Dispensa</button>
+  <button class="nav-item" onclick="mudarAba('comparativo',this)">📈<br>Preços</button>
+  <button class="nav-item" onclick="mudarAba('mercado',this)">📊<br>Histórico</button>
+</nav>
 
-        if (historicoAnterior) {
-          let diff = item.preco - historicoAnterior.preco;
-          if (diff < 0) {
-            variacaoHtml = `<br><small style="color: var(--success-color);">📉 Economia de R$ ${Math.abs(diff).toFixed(2).replace('.', ',')} (Antigo: R$ ${historicoAnterior.preco.toFixed(2).replace('.', ',')} em ${historicoAnterior.estabelecimento})</small>`;
-          } else if (diff > 0) {
-            variacaoHtml = `<br><small style="color: var(--danger-color);">📈 Mais caro R$ ${diff.toFixed(2).replace('.', ',')} (Antigo: R$ ${historicoAnterior.preco.toFixed(2).replace('.', ',')} em ${historicoAnterior.estabelecimento})</small>`;
-          } else {
-            variacaoHtml = `<br><small style="color: #7f8c8d;">⚖️ Preço igual (R$ ${historicoAnterior.preco.toFixed(2).replace('.', ',')})</small>`;
-          }
-        } else {
-          variacaoHtml = `<br><small style="color: #7f8c8d;">🆕 Sem registo anterior</small>`;
-        }
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const R=v=>'R$ '+(+v||0).toFixed(2).replace('.',',');
+const norm=s=>String(s).trim().toLowerCase();
+const num=v=>parseFloat(String(v).replace(',','.'))||0;
+const fmt=n=>Math.round(n*10)/10;
+const DIA=864e5, LEAD=5, HORIZ=14; // alerta com 5 dias restantes; sugestão cobre 14 dias
+let _u=0;const uid=()=>Date.now()*100+(_u++%100);
+const load=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v??d}catch(e){return d}};
+const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+let produtos=load('stokfy_produtos',[]),dispensa=load('stokfy_dispensa',[]),historico=load('stokfy_historico',[]),teto=num(load('stokfy_teto',0));
+const sp=()=>save('stokfy_produtos',produtos),sd=()=>save('stokfy_dispensa',dispensa),sh=()=>save('stokfy_historico',historico);
+const navs=()=>document.querySelectorAll('.nav-item');
 
-        html += `
-          <div class="comparativo-card-item">
-            <div>
-              <span class="produto-nome"><strong>${item.nome}</strong> (${item.qtd}x)</span>
-              ${variacaoHtml}
-            </div>
-            <strong style="color: var(--primary-color); white-space: nowrap; font-size: 0.9rem;">R$ ${(item.qtd * item.preco).toFixed(2).replace('.', ',')}</strong>
-          </div>
-        `;
-      });
+function migrar(){
+  const n=Date.now();
+  historico.forEach(c=>{c.ts=c.ts||c.id||n;c.itens=c.itens||[]});
+  dispensa.forEach(d=>{d.at=d.at||n;d.minimo=d.minimo??1;if(!d.ciclos)d.ciclos=d.qtd>0?[{ini:n,qi:d.qtd,fim:null,qf:null}]:[]});
+  localStorage.removeItem('stokfy_ultima_comp');
+}
 
-      container.innerHTML = html;
-    }
+function setorDe(nome){
+  const n=norm(nome),has=l=>l.some(k=>n.includes(k));
+  if(has(['sabão','detergente','amaciante','limpeza','desinfetante','esponja','papel higiênico','alvejante','multiuso','sanitária']))return'LIMPEZA';
+  if(has(['carne','frango','bife','porco','linguiça','salsicha','bacon','presunto','peixe','alcatra']))return'CARNES';
+  if(has(['leite','queijo','nata','requeijão','manteiga','iogurte','margarina','ovos']))return'FRIOS E LATICÍNIOS';
+  if(has(['maçã','banana','tomate','batata','cebola','alface','cenoura','fruta','verdura','alho','limão']))return'HORTIFRUTI';
+  if(has(['cerveja','refrigerante','suco','água','vinho']))return'BEBIDAS';
+  if(has(['pão','bolo','biscoito']))return'PADARIA';
+  return'MERCEARIA';
+}
 
-    function renderizarHistorico() {
-      const container = document.getElementById('historicoContainer');
-      const totalGeralEl = document.getElementById('totalGeralHistorico');
+/* ---------- consumo: ciclos de duração ---------- */
+function taxa(d){ // unidades consumidas por dia (média dos últimos 3 ciclos válidos)
+  const v=d.ciclos.filter(c=>c.fim&&c.fim-c.ini>=DIA/2&&c.qi-c.qf>0).slice(-3);
+  return v.length?v.reduce((a,c)=>a+(c.qi-c.qf)/((c.fim-c.ini)/DIA),0)/v.length:0;
+}
+const estQtd=d=>Math.max(0,d.qtd-taxa(d)*(Date.now()-d.at)/DIA);
+const diasRest=d=>{const t=taxa(d);return t>0?estQtd(d)/t:null};
+const precisa=d=>{const dr=diasRest(d);return estQtd(d)<=d.minimo||(dr!==null&&dr<=LEAD)};
+const ativo=d=>precisa(d)&&(!d.adiadoAte||d.adiadoAte<Date.now());
+function repor(d,q){
+  const n=Date.now(),e=estQtd(d),ab=d.ciclos[d.ciclos.length-1];
+  if(ab&&!ab.fim){ab.fim=n;ab.qf=e}
+  d.qtd=Math.round((e+q)*100)/100;d.at=n;d.adiadoAte=null;
+  d.ciclos.push({ini:n,qi:d.qtd,fim:null,qf:null});d.ciclos=d.ciclos.slice(-6);
+}
+function baixar(d,q){
+  const n=Date.now(),e=estQtd(d);
+  d.qtd=Math.max(0,Math.round((e-q)*100)/100);d.at=n;d.adiadoAte=null;
+  const ab=d.ciclos[d.ciclos.length-1];
+  if(d.qtd<=0&&ab&&!ab.fim){ab.fim=n;ab.qf=0}
+}
+function entrada(nome,setor,q,min){
+  let d=dispensa.find(x=>norm(x.nome)===norm(nome));
+  if(!d){d={id:uid(),nome,setor,qtd:0,minimo:min||1,adiadoAte:null,ciclos:[],at:Date.now()};dispensa.push(d)}
+  else if(min)d.minimo=min;
+  repor(d,q);
+}
+function qtdSug(d){
+  const t=taxa(d);
+  return t>0?Math.max(1,Math.ceil(t*HORIZ-estQtd(d))):Math.max(1,Math.ceil(d.minimo*2-estQtd(d)));
+}
+function ultimoPreco(nome){
+  for(const c of historico){const i=c.itens.find(x=>norm(x.nome)===norm(nome)&&x.preco>0);if(i)return i.preco}
+  return 0;
+}
 
-      let somaGeral = historicoCompras.reduce((acc, c) => acc + c.total, 0);
-      totalGeralEl.innerText = 'R$ ' + somaGeral.toFixed(2).replace('.', ',');
+/* ---------- lista de compras ---------- */
+function novoProduto(nome,setor,qtd){
+  if(produtos.some(p=>norm(p.nome)===norm(nome)))return false;
+  produtos.push({id:uid(),nome,setor:setor||setorDe(nome),qtd:qtd||1,preco:ultimoPreco(nome),comprado:false});
+  return true;
+}
+function adicionarProduto(){
+  const i=$('produtoInput'),nome=i.value.trim();
+  if(!nome)return;
+  if(!novoProduto(nome))alert('Esse item já está na lista.');
+  i.value='';sp();renderLista();
+}
+const removerProduto=id=>{produtos=produtos.filter(p=>p.id!==id);sp();renderLista()};
+function alterarQtd(id,dl){const p=produtos.find(x=>x.id===id);if(p){p.qtd=Math.max(1,p.qtd+dl);sp();renderLista()}}
+function atualizarPreco(id,v){const p=produtos.find(x=>x.id===id);if(p){p.preco=num(v);sp();kpi()}}
+function toggleComprado(id){const p=produtos.find(x=>x.id===id);if(p){p.comprado=!p.comprado;sp();renderLista()}}
 
-      if (historicoCompras.length === 0) {
-        container.innerHTML = '<p style="font-size: 0.85rem; color: #7f8c8d;">Nenhum registo de compra efetuado ainda.</p>';
-        return;
-      }
+function renderLista(){
+  const c=$('lista');
+  if(!produtos.length){c.innerHTML='<p class="mut">Sua lista está vazia.</p>';kpi();return}
+  const g={};produtos.forEach(p=>(g[p.setor]=g[p.setor]||[]).push(p));
+  c.innerHTML=Object.keys(g).map(s=>`<div class="setor"><b>📍 ${esc(s)}</b>${g[s].map(p=>`
+    <div class="item"><div class="info"><input type="checkbox" ${p.comprado?'checked':''} onchange="toggleComprado(${p.id})"><span style="${p.comprado?'text-decoration:line-through;opacity:.6':''}">${esc(p.nome)}</span></div>
+    <div class="ctl"><div class="qtd"><button onclick="alterarQtd(${p.id},-1)">-</button><span>${p.qtd}</span><button onclick="alterarQtd(${p.id},1)">+</button></div>
+    <input type="number" step="0.01" min="0" inputmode="decimal" class="preco" placeholder="0,00" value="${p.preco>0?p.preco.toFixed(2):''}" oninput="atualizarPreco(${p.id},this.value)">
+    <button class="del" onclick="removerProduto(${p.id})">✕</button></div></div>`).join('')}</div>`).join('');
+  kpi();
+}
 
-      container.innerHTML = '';
-      historicoCompras.forEach((compra, index) => {
-        let div = document.createElement('div');
-        div.className = 'produto-item';
-        div.style.flexDirection = 'column';
-        div.style.alignItems = 'stretch';
-        div.innerHTML = `
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-              <strong>${compra.estabelecimento}</strong><br>
-              <small style="color: #7f8c8d; font-size: 0.75rem;">${compra.data} — ${compra.itens.length} itens</small>
-            </div>
-            <div style="text-align: right;">
-              <span style="color: var(--primary-color); font-weight: bold; font-size: 0.9rem;">R$ ${compra.total.toFixed(2).replace('.', ',')}</span><br>
-              <button class="btn-outline" style="padding: 2px 6px; font-size: 0.7rem; margin-top: 4px;" onclick="removerHistorico(${index})">Remover</button>
-            </div>
-          </div>
-        `;
-        container.appendChild(div);
-      });
-    }
+/* ---------- teto mensal ---------- */
+const ym=t=>{const d=new Date(t);return d.getFullYear()*12+d.getMonth()};
+const gastoMes=()=>historico.filter(c=>ym(c.ts)===ym(Date.now())).reduce((a,c)=>a+c.total,0);
+function kpi(){
+  const prev=produtos.reduce((a,p)=>a+p.qtd*p.preco,0),g=gastoMes();
+  $('totalCarrinho').innerText=R(prev);
+  $('mesNome').innerText=new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+  $('valGasto').innerText=R(g);
+  const st=$('tetoStatus'),rest=$('valRest'),ap=$('tetoApos');
+  if(teto>0){
+    const r=teto-g,a=r-prev;
+    $('valTeto').innerText=R(teto);rest.innerText=R(r);
+    rest.style.color=r<0?'var(--dan)':'var(--pri)';
+    st.innerText=r<0?'⚠️ Teto ultrapassado':'✅ Dentro do limite';st.style.color=r<0?'var(--dan)':'var(--pri)';
+    ap.innerText=prev>0?(a<0?`Esta lista ultrapassa o teto em ${R(-a)}`:`Após esta lista restam ${R(a)}`):'';
+    ap.style.color=a<0?'var(--dan)':'var(--mut)';
+  }else{
+    $('valTeto').innerText='-';rest.innerText='-';rest.style.color='';st.innerText='Defina um teto';st.style.color='var(--mut)';ap.innerText='';
+  }
+}
+function definirTeto(){
+  const v=prompt('Teto mensal (R$). Vale para todos os meses:',teto>0?teto:'');
+  if(v!==null){teto=Math.max(0,num(v));localStorage.setItem('stokfy_teto',teto);kpi()}
+}
 
-    function removerHistorico(index) {
-      historicoCompras.splice(index, 1);
-      localStorage.setItem('stokfy_historico', JSON.stringify(historicoCompras));
-      if (historicoCompras.length === 0) {
-        ultimaComparacao = null;
-        localStorage.removeItem('stokfy_ultima_comp');
-      } else {
-        ultimaComparacao = historicoCompras[0];
-        localStorage.setItem('stokfy_ultima_comp', JSON.stringify(ultimaComparacao));
-      }
-      renderizarHistorico();
-      renderizarComparativoUltima();
-      salvarKpi();
-    }
+/* ---------- dispensa ---------- */
+const SUG=[['Café','☕'],['Azeite','🫒'],['Arroz','🍚'],['Feijão','🫘'],['Leite','🥛'],['Açúcar','🧂'],['Óleo','🌻'],['Sal','🧂'],['Papel Higiênico','🧻'],['Detergente','🧽'],['Sabão em Pó','🧼'],['Ovos','🥚']];
+function adicionarSugestao(nome){entrada(nome,setorDe(nome),1);sd();renderDispensa()}
+function adicionarItemDispensa(){
+  const nome=$('dNome').value.trim();if(!nome)return;
+  entrada(nome,setorDe(nome),num($('dQtd').value)||1,num($('dMin').value)||1);
+  $('dNome').value='';$('dQtd').value='1';$('dMin').value='1';sd();renderDispensa();
+}
+function altDisp(id,dl){const d=dispensa.find(x=>x.id===id);if(!d)return;dl<0?baixar(d,1):repor(d,1);sd();renderDispensa()}
+function acabou(id){const d=dispensa.find(x=>x.id===id);if(d){baixar(d,d.qtd+1);sd();renderDispensa()}}
+function adiar(id){const d=dispensa.find(x=>x.id===id);if(d){d.adiadoAte=Date.now()+7*DIA;sd();renderDispensa()}}
+function removerDisp(id){dispensa=dispensa.filter(d=>d.id!==id);sd();renderDispensa()}
+function renderDispensa(){
+  const c=$('dispensa'),ativos=dispensa.filter(ativo).length;
+  $('alertaCount').innerText=`${ativos} para recomprar`;
+  if(!dispensa.length){c.innerHTML='<p class="mut">Sua dispensa está vazia.</p>';return}
+  const n=Date.now();
+  c.innerHTML=[...dispensa].sort((a,b)=>ativo(b)-ativo(a)).map(d=>{
+    const at=ativo(d),ad=precisa(d)&&!at,dr=diasRest(d),e=estQtd(d);
+    const dur=dr===null?'aprendendo consumo':e<=0?'acabou':`dura ~${Math.max(1,Math.round(dr))} dia(s)`;
+    return`<div class="item" style="border-color:${at?'var(--warn)':'var(--bd)'}"><div class="info"><span>${at?'⚠️':'📦'}</span><div><strong>${esc(d.nome)}</strong><br><small>${esc(d.setor)} · mín ${d.minimo} · ${dur}${ad?' · adiado':''}</small></div></div>
+    <div class="ctl">${at?`<button class="out" onclick="adiar(${d.id})">Adiar</button>`:''}${e>0?`<button class="out" onclick="acabou(${d.id})">Acabou</button>`:''}
+    <div class="qtd"><button onclick="altDisp(${d.id},-1)">-</button><span style="font-weight:bold;color:${at?'var(--warn)':'inherit'}">${fmt(e)}</span><button onclick="altDisp(${d.id},1)">+</button></div>
+    <button class="del" onclick="removerDisp(${d.id})">✕</button></div></div>`}).join('');
+}
+function gerarListaDaDispensa(){
+  const crit=dispensa.filter(ativo);
+  if(!crit.length){alert('Nenhum item para recomprar no momento.');return}
+  let add=0;crit.forEach(d=>{if(novoProduto(d.nome,d.setor,qtdSug(d)))add++});
+  sp();renderLista();mudarAba('inicio',navs()[0]);
+  alert(`${add} item(ns) adicionado(s) à lista${add<crit.length?' (o resto já estava nela)':''}.`);
+}
 
-    function limparHistorico() {
-      if(confirm('Deseja limpar todo o histórico de compras?')) {
-        historicoCompras = [];
-        ultimaComparacao = null;
-        localStorage.removeItem('stokfy_historico');
-        localStorage.removeItem('stokfy_ultima_comp');
-        renderizarHistorico();
-        renderizarComparativoUltima();
-        salvarKpi();
-      }
-    }
+/* ---------- fechar compra ---------- */
+function fecharCompra(){
+  let itens=produtos.filter(p=>p.comprado);
+  if(!itens.length){
+    if(!produtos.length){alert('A lista está vazia.');return}
+    if(!confirm('Nenhum item marcado como comprado. Registrar todos?'))return;
+    itens=produtos.slice();
+  }
+  const total=itens.reduce((a,p)=>a+p.qtd*p.preco,0);
+  if(total<=0&&!confirm('Nenhum preço informado. Registrar mesmo assim?'))return;
+  if($('atualizarDispensaCheck').checked){itens.forEach(p=>entrada(p.nome,p.setor,p.qtd));sd()}
+  historico.unshift({id:uid(),ts:Date.now(),estabelecimento:$('estabInput').value.trim()||'Estabelecimento Local',total,itens:itens.map(p=>({...p}))});
+  produtos=produtos.filter(p=>!itens.includes(p));
+  $('estabInput').value='';
+  sp();sh();renderTudo();mudarAba('comparativo',navs()[2]);
+}
+function reutilizarUltima(){
+  const u=historico[0];
+  if(!u||!u.itens.length){alert('Não há compras anteriores para reutilizar.');return}
+  if(produtos.length&&!confirm('Isso substitui a lista atual. Continuar?'))return;
+  produtos=u.itens.map(i=>({id:uid(),nome:i.nome,setor:i.setor||setorDe(i.nome),qtd:i.qtd||1,preco:ultimoPreco(i.nome)||i.preco||0,comprado:false}));
+  sp();renderLista();mudarAba('inicio',navs()[0]);
+}
 
-    function exportarBackup() {
-      const dadosBackup = {
-        produtos: produtos,
-        dispensa: dispensa,
-        historicoCompras: historicoCompras,
-        ultimaComparacao: ultimaComparacao,
-        tetoOrcamento: tetoOrcamento,
-        versao: "1.1",
-        dataExportacao: new Date().toISOString()
-      };
+/* ---------- comparativo e histórico ---------- */
+function precoAnterior(nome,id){
+  for(const c of historico){if(c.id===id)continue;const i=c.itens.find(x=>norm(x.nome)===norm(nome)&&x.preco>0);if(i)return{preco:i.preco,est:c.estabelecimento}}
+  return null;
+}
+function renderComp(){
+  const u=historico[0],c=$('comp');
+  if(!u){c.innerHTML='<p class="mut">Nenhuma compra registrada ainda.</p>';return}
+  c.innerHTML=`<div class="box" style="text-align:left;font-size:.85rem;margin-bottom:12px"><strong>${esc(u.estabelecimento)}</strong><br>${new Date(u.ts).toLocaleDateString('pt-BR')} · ${R(u.total)}</div>`+
+  u.itens.map(i=>{
+    const a=precoAnterior(i.nome,u.id);let v='<small>🆕 Sem registro anterior</small>';
+    if(a&&i.preco>0){const df=i.preco-a.preco;
+      v=df<0?`<small style="color:var(--pri)">📉 Economia de ${R(-df)} (antes ${R(a.preco)} em ${esc(a.est)})</small>`
+       :df>0?`<small style="color:var(--dan)">📈 ${R(df)} mais caro (antes ${R(a.preco)} em ${esc(a.est)})</small>`
+       :`<small>⚖️ Preço igual (${R(a.preco)})</small>`}
+    return`<div class="item"><div class="info"><div><strong>${esc(i.nome)}</strong> (${i.qtd}x)<br>${v}</div></div><strong style="color:var(--pri);white-space:nowrap">${R(i.qtd*i.preco)}</strong></div>`}).join('');
+}
+function renderHist(){
+  $('totalGeral').innerText=R(historico.reduce((a,c)=>a+c.total,0));
+  const m={};historico.forEach(c=>{const d=new Date(c.ts),k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');m[k]=(m[k]||0)+c.total});
+  $('meses').innerHTML=Object.keys(m).sort().reverse().map(k=>`<div style="display:flex;justify-content:space-between;font-size:.85rem;padding:4px 0"><span>${k.slice(5)}/${k.slice(0,4)}</span><strong>${R(m[k])}</strong></div>`).join('');
+  $('hist').innerHTML=historico.length?historico.map((c,i)=>`<div class="item"><div class="info"><div><strong>${esc(c.estabelecimento)}</strong><br><small>${new Date(c.ts).toLocaleDateString('pt-BR')} · ${c.itens.length} itens</small></div></div><div style="text-align:right"><strong style="color:var(--pri)">${R(c.total)}</strong><br><button class="out" onclick="removerHist(${i})">Remover</button></div></div>`).join(''):'<p class="mut">Nenhuma compra registrada ainda.</p>';
+}
+function removerHist(i){if(confirm('Remover esta compra?')){historico.splice(i,1);sh();renderTudo()}}
+function limparHistorico(){if(confirm('Limpar todo o histórico de compras?')){historico=[];sh();renderTudo()}}
 
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dadosBackup, null, 2));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `stokfy_backup_${new Date().toISOString().slice(0,10)}.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-    }
+/* ---------- backup ---------- */
+function exportarBackup(){
+  const b={produtos,dispensa,historicoCompras:historico,tetoOrcamento:teto,versao:'2.0',dataExportacao:new Date().toISOString()};
+  const a=document.createElement('a');
+  a.href='data:text/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(b,null,2));
+  a.download=`stokfy_backup_${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);a.click();a.remove();
+}
+function importarBackup(ev){
+  const f=ev.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const b=JSON.parse(e.target.result);
+      if(!b||!Array.isArray(b.historicoCompras)){alert('Arquivo de backup inválido.');return}
+      if(!confirm('Isso substitui todos os dados atuais. Continuar?'))return;
+      produtos=Array.isArray(b.produtos)?b.produtos:[];dispensa=Array.isArray(b.dispensa)?b.dispensa:[];
+      historico=b.historicoCompras;teto=num(b.tetoOrcamento);
+      migrar();sp();sd();sh();localStorage.setItem('stokfy_teto',teto);renderTudo();alert('Backup restaurado!');
+    }catch(err){alert('Não foi possível ler o arquivo JSON.')}
+  };
+  r.readAsText(f);ev.target.value='';
+}
 
-    function importarBackup(event) {
-      const arquivo = event.target.files[0];
-      if (!arquivo) return;
+/* ---------- interface ---------- */
+function renderTudo(){renderLista();renderDispensa();renderComp();renderHist()}
+function mudarAba(id,btn){
+  document.querySelectorAll('.tab-content,.nav-item').forEach(e=>e.classList.remove('active'));
+  $('tab-'+id).classList.add('active');if(btn)btn.classList.add('active');
+}
+function toggleTheme(){
+  const t=document.body.dataset.theme==='light'?'dark':'light';
+  document.body.dataset.theme=t;localStorage.setItem('stokfy_theme',t);
+}
 
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const conteudo = JSON.parse(e.target.result);
-          if (conteudo && conteudo.historicoCompras !== undefined) {
-            produtos = conteudo.produtos || [];
-            dispensa = conteudo.dispensa || [];
-            historicoCompras = conteudo.historicoCompras || [];
-            ultimaComparacao = conteudo.ultimaComparacao || null;
-            tetoOrcamento = conteudo.tetoOrcamento || 0;
+/* ---------- PWA ---------- */
+let dp=null;
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;$('btnInstalar').hidden=false});
+addEventListener('appinstalled',()=>{$('btnInstalar').hidden=true});
+function instalar(){
+  if(dp){dp.prompt();dp=null;$('btnInstalar').hidden=true}
+  else alert('No iPhone: toque em Compartilhar (□↑) e depois em "Adicionar à Tela de Início".');
+}
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 
-            localStorage.setItem('stokfy_produtos', JSON.stringify(produtos));
-            localStorage.setItem('stokfy_dispensa', JSON.stringify(dispensa));
-            localStorage.setItem('stokfy_historico', JSON.stringify(historicoCompras));
-            if(ultimaComparacao) localStorage.setItem('stokfy_ultima_comp', JSON.stringify(ultimaComparacao));
-            localStorage.setItem('stokfy_teto', tetoOrcamento);
-
-            renderizarLista();
-            renderizarDispensa();
-            renderizarHistorico();
-            renderizarComparativoUltima();
-            salvarKpi();
-
-            alert('Backup restaurado com sucesso!');
-          } else {
-            alert('Arquivo de backup inválido ou corrompido.');
-          }
-        } catch (err) {
-          alert('Erro ao ler o arquivo JSON.');
-        }
-      };
-      reader.readAsText(arquivo);
-      event.target.value = '';
-    }
-
-    function mudarAba(abaId, elementoBtn) {
-      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-
-      const abaAlvo = document.getElementById('tab-' + abaId);
-      if (abaAlvo) abaAlvo.classList.add('active');
-      if (elementoBtn) elementoBtn.classList.add('active');
-    }
-
-    function toggleTheme() {
-      const body = document.body;
-      const currentTheme = body.getAttribute('data-theme');
-      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-      body.setAttribute('data-theme', newTheme);
-      localStorage.setItem('stokfy_theme', newTheme);
-    }
-
-    window.onload = () => {
-      const savedTheme = localStorage.getItem('stokfy_theme') || 'light';
-      document.body.setAttribute('data-theme', savedTheme);
-      renderizarLista();
-      renderizarDispensa();
-      renderizarHistorico();
-      renderizarComparativoUltima();
-    };
-  </script>
+window.onload=()=>{
+  document.body.dataset.theme=localStorage.getItem('stokfy_theme')||'light';
+  $('pills').innerHTML=SUG.map(([n,e])=>`<button class="pill" onclick="adicionarSugestao('${n}')">+ ${e} ${n}</button>`).join('');
+  if(/iphone|ipad|ipod/i.test(navigator.userAgent)&&!navigator.standalone)$('btnInstalar').hidden=false;
+  migrar();renderTudo();
+  setInterval(renderDispensa,6e4);
+};
+</script>
 </body>
 </html>
