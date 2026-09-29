@@ -492,11 +492,11 @@
       </div>
     </div>
 
-    <!-- ABA 2: DISPENSA (ESTOQUE DOMÉSTICO COM ZERO DIGITAÇÃO) -->
+    <!-- ABA 2: DISPENSA (ESTOQUE DOMÉSTICO COM ADIAR ALERTA) -->
     <div id="tab-dispensa" class="tab-content">
       <div class="card">
         <div class="card-title">📦 Dispensa Doméstica</div>
-        <p style="font-size: 0.8rem; color: #7f8c8d; margin-bottom: 10px;">Toque nos itens frequentes abaixo para adicionar com 1 clique (Zero Digitação):</p>
+        <p style="font-size: 0.8rem; color: #7f8c8d; margin-bottom: 10px;">Toque nos itens frequentes abaixo para adicionar com 1 clique:</p>
 
         <div class="sugestoes-grid">
           <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Café')">+ ☕ Café</button>
@@ -763,13 +763,15 @@
       let existente = dispensa.find(d => d.nome.toLowerCase() === nomeItem.toLowerCase());
       if (existente) {
         existente.qtd += 1;
+        existente.adiadoAte = null; // Reseta o adiamento ao adicionar mais
       } else {
         dispensa.push({
           id: Date.now() + Math.random(),
           nome: nomeItem,
           setor: determinarSetor(nomeItem),
           qtd: 1,
-          minimo: 1
+          minimo: 1,
+          adiadoAte: null
         });
       }
       salvarDispensa();
@@ -788,7 +790,8 @@
         nome: nome,
         setor: determinarSetor(nome),
         qtd: parseFloat(qtdInput.value) || 1,
-        minimo: parseFloat(minInput.value) || 1
+        minimo: parseFloat(minInput.value) || 1,
+        adiadoAte: null
       });
 
       nomeInput.value = '';
@@ -802,6 +805,18 @@
       if(item) {
         item.qtd += delta;
         if(item.qtd < 0) item.qtd = 0;
+        item.adiadoAte = null; // Reseta o adiamento ao alterar qtd
+        salvarDispensa();
+      }
+    }
+
+    function adiarAlertaDispensa(id) {
+      const item = dispensa.find(d => d.id === id);
+      if (item) {
+        // Adia o alerta por 7 dias a partir de hoje
+        let dataFutura = new Date();
+        dataFutura.setDate(dataFutura.getDate() + 7);
+        item.adiadoAte = dataFutura.getTime();
         salvarDispensa();
       }
     }
@@ -814,9 +829,11 @@
     function renderizarDispensa() {
       const container = document.getElementById('dispensaContainer');
       const alertaCountEl = document.getElementById('alertaDispensaCount');
+      const agora = Date.now();
 
-      let itensBaixos = dispensa.filter(d => d.qtd <= d.minimo);
-      alertaCountEl.innerText = `${itensBaixos.length} itens acabando`;
+      // Conta apenas os itens que estão baixos E cujos alertas NÃO estão adiados
+      let itensBaixosReais = dispensa.filter(d => d.qtd <= d.minimo && (!d.adiadoAte || d.adiadoAte < agora));
+      alertaCountEl.innerText = `${itensBaixosReais.length} itens acabando`;
 
       if (dispensa.length === 0) {
         container.innerHTML = '<p style="font-size: 0.85rem; color: #7f8c8d;">Sua dispensa está vazia.</p>';
@@ -826,21 +843,24 @@
       container.innerHTML = '';
       dispensa.forEach(item => {
         let isBaixo = item.qtd <= item.minimo;
+        let isAdiado = isBaixo && item.adiadoAte && item.adiadoAte >= agora;
+        
         let div = document.createElement('div');
         div.className = 'produto-item';
-        div.style.borderColor = isBaixo ? 'var(--warning-color)' : 'var(--border-color)';
+        div.style.borderColor = (isBaixo && !isAdiado) ? 'var(--warning-color)' : 'var(--border-color)';
         div.innerHTML = `
           <div class="produto-info">
-            <span style="font-size: 1.1rem;">${isBaixo ? '⚠️' : '📦'}</span>
+            <span style="font-size: 1.1rem;">${(isBaixo && !isAdiado) ? '⚠️' : '📦'}</span>
             <div>
               <span class="produto-nome"><strong>${item.nome}</strong></span><br>
-              <small style="color: #7f8c8d; font-size: 0.75rem;">Setor: ${item.setor} | Mín: ${item.minimo}</small>
+              <small style="color: #7f8c8d; font-size: 0.75rem;">Setor: ${item.setor} | Mín: ${item.minimo} ${isAdiado ? '— ⏱️ Alerta adiado' : ''}</small>
             </div>
           </div>
           <div class="produto-controles">
+            ${isBaixo && !isAdiado ? `<button class="btn-outline" style="padding: 3px 6px; font-size: 0.7rem;" onclick="adiarAlertaDispensa(${item.id})">Adiar</button>` : ''}
             <div class="qtd-control">
               <button onclick="alterarQtdDispensa(${item.id}, -1)">-</button>
-              <span style="color: ${isBaixo ? 'var(--warning-color)' : 'inherit'}; font-weight: bold;">${item.qtd}</span>
+              <span style="color: ${(isBaixo && !isAdiado) ? 'var(--warning-color)' : 'inherit'}; font-weight: bold;">${item.qtd}</span>
               <button onclick="alterarQtdDispensa(${item.id}, 1)">+</button>
             </div>
             <button class="btn-delete" onclick="removerItemDispensa(${item.id})">✕</button>
@@ -851,10 +871,12 @@
     }
 
     function gerarListaDaDispensa() {
-      let itensCriticos = dispensa.filter(d => d.qtd <= d.minimo);
+      const agora = Date.now();
+      // Considera apenas itens críticos e não adiados
+      let itensCriticos = dispensa.filter(d => d.qtd <= d.minimo && (!d.adiadoAte || d.adiadoAte < agora));
       
       if (itensCriticos.length === 0) {
-        alert('Nenhum item na dispensa atingiu o estoque mínimo no momento.');
+        alert('Nenhum item crítico pendente na dispensa no momento.');
         return;
       }
 
@@ -895,13 +917,15 @@
           let itemDispensa = dispensa.find(d => d.nome.toLowerCase() === prod.nome.toLowerCase());
           if (itemDispensa) {
             itemDispensa.qtd += prod.qtd;
+            itemDispensa.adiadoAte = null; // Reseta o adiamento ao comprar
           } else {
             dispensa.push({
               id: Date.now() + Math.random(),
               nome: prod.nome,
               setor: prod.setor,
               qtd: prod.qtd,
-              minimo: 1
+              minimo: 1,
+              adiadoAte: null
             });
           }
         });
@@ -1077,7 +1101,6 @@
       }
     }
 
-    // --- FUNÇÕES DE BACKUP E RESTAURAÇÃO ---
     function exportarBackup() {
       const dadosBackup = {
         produtos: produtos,
@@ -1085,7 +1108,7 @@
         historicoCompras: historicoCompras,
         ultimaComparacao: ultimaComparacao,
         tetoOrcamento: tetoOrcamento,
-        versao: "1.0",
+        versao: "1.1",
         dataExportacao: new Date().toISOString()
       };
 
@@ -1134,7 +1157,7 @@
         }
       };
       reader.readAsText(arquivo);
-      event.target.value = ''; // Reseta o input file
+      event.target.value = '';
     }
 
     function mudarAba(abaId, elementoBtn) {
