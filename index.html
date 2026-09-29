@@ -635,8 +635,6 @@
       const valRestanteEl = document.getElementById('valRestanteDisplay');
       const statusAlertaEl = document.getElementById('tetoStatusAlerta');
 
-      // O gasto agora reflete apenas o histórico de compras efetivadas no mês/período. 
-      // O carrinho atual serve apenas de planejamento ("Total Previsto no Carrinho").
       let gastoTotal = historicoCompras.reduce((acc, c) => acc + c.total, 0);
 
       valGastoEl.innerText = 'R$ ' + gastoTotal.toFixed(2).replace('.', ',');
@@ -717,6 +715,7 @@
         return;
       }
 
+      // Copia apenas os produtos, mantendo o teto orçamentário atual intacto
       produtos = ultimaCompra.itens.map(item => ({
         id: Date.now() + Math.random(),
         nome: item.nome,
@@ -874,7 +873,7 @@
 
     window.onload = () => {
       const savedTheme = localStorage.getItem('stokfy_theme') || 'light';
-      body.setAttribute('data-theme', savedTheme);
+      document.body.setAttribute('data-theme', savedTheme);
       renderizarLista();
       renderizarHistorico();
       renderizarComparativoUltima();
