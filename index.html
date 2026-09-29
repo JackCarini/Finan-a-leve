@@ -44,7 +44,7 @@
       background-color: var(--bg-color);
       color: var(--text-color);
       padding-bottom: 80px;
-      overflow-x: hidden; /* Evita qualquer scroll horizontal indesejado */
+      overflow-x: hidden;
       transition: background-color 0.3s, color 0.3s;
     }
 
@@ -99,7 +99,6 @@
       display: block !important;
     }
 
-    /* Ações Rápidas em Grid Flexível para caber perfeitamente na tela */
     .quick-actions {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -237,6 +236,32 @@
       min-width: 0;
     }
 
+    /* Grade de Sugestões Rápidas (Zero Digitação) */
+    .sugestoes-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .sugestao-pill {
+      background-color: var(--bg-color);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 6px 10px;
+      border-radius: 15px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .sugestao-pill:hover {
+      border-color: var(--primary-color);
+      color: var(--primary-color);
+      background-color: rgba(39, 174, 96, 0.05);
+    }
+
     .setor-section {
       margin-top: 12px;
       border-top: 1px dashed var(--border-color);
@@ -356,7 +381,6 @@
       gap: 8px;
     }
 
-    /* Barra de Navegação Inferior Otimizada */
     nav.bottom-nav {
       position: fixed;
       bottom: 0;
@@ -469,22 +493,38 @@
       </div>
     </div>
 
-    <!-- ABA 2: DISPENSA (ESTOQUE DOMÉSTICO) -->
+    <!-- ABA 2: DISPENSA (ESTOQUE DOMÉSTICO COM ZERO DIGITAÇÃO) -->
     <div id="tab-dispensa" class="tab-content">
       <div class="card">
         <div class="card-title">📦 Dispensa Doméstica</div>
-        <p style="font-size: 0.8rem; color: #7f8c8d; margin-bottom: 12px;">Controle o estoque de casa. Itens abaixo do mínimo geram alertas.</p>
+        <p style="font-size: 0.8rem; color: #7f8c8d; margin-bottom: 10px;">Toque nos itens frequentes abaixo para adicionar com 1 clique (Zero Digitação):</p>
 
-        <!-- Formulário para adicionar item avulso na dispensa -->
+        <!-- Atalhos de Sugestões Frequentes -->
+        <div class="sugestoes-grid">
+          <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Café')">+ ☕ Café</button>
+          <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Azeite')">+ 🫒 Azeite</button>
+          <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Arroz')">+ 🍚 Arroz</button>
+          <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Feijão')">+ 🫘 Feijão</button>
+          <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Leite')">+ 🥛 Leite</button>
+          <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Açúcar')">+ 🧂 Açúcar</button>
+          <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Óleo')">+ 🌻 Óleo</button>
+          <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Sal')">+ 🧂 Sal</button>
+          <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Papel Higiênico')">+ 🧻 Papel Higiênico</button>
+          <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Detergente')">+ 🧽 Detergente</button>
+          <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Sabão em Pó')">+ 🧼 Sabão em Pó</button>
+          <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Ovos')">+ 🥚 Ovos</button>
+        </div>
+
+        <!-- Formulário manual alternativo -->
         <div style="background: var(--bg-color); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 12px;">
-          <strong style="font-size: 0.8rem; display: block; margin-bottom: 6px; color: var(--primary-color);">Adicionar Item na Dispensa</strong>
+          <strong style="font-size: 0.8rem; display: block; margin-bottom: 6px; color: var(--primary-color);">Ou Adicionar Outro Item Manualmente</strong>
           <div style="display: flex; flex-direction: column; gap: 6px;">
-            <input type="text" id="dispensaNomeInput" placeholder="Nome do item (ex: Sal, Açúcar)">
+            <input type="text" id="dispensaNomeInput" placeholder="Nome do item (ex: Farinha)">
             <div style="display: flex; gap: 6px;">
               <input type="number" id="dispensaQtdInput" placeholder="Qtd Atual" value="1" step="0.1" style="flex: 1;">
               <input type="number" id="dispensaMinInput" placeholder="Mínimo" value="1" step="0.1" style="flex: 1;">
             </div>
-            <button class="btn" style="padding: 8px; font-size: 0.85rem;" onclick="adicionarItemDispensa()">Adicionar</button>
+            <button class="btn" style="padding: 8px; font-size: 0.85rem;" onclick="adicionarItemDispensa()">Adicionar Personalizado</button>
           </div>
         </div>
 
@@ -711,6 +751,23 @@
       }
     }
 
+    // Função de 1 clique para adicionar sugestões frequentes na dispensa
+    function adicionarSugestaoDispensa(nomeItem) {
+      let existente = dispensa.find(d => d.nome.toLowerCase() === nomeItem.toLowerCase());
+      if (existente) {
+        existente.qtd += 1;
+      } else {
+        dispensa.push({
+          id: Date.now() + Math.random(),
+          nome: nomeItem,
+          setor: determinarSetor(nomeItem),
+          qtd: 1,
+          minimo: 1
+        });
+      }
+      salvarDispensa();
+    }
+
     function adicionarItemDispensa() {
       const nomeInput = document.getElementById('dispensaNomeInput');
       const qtdInput = document.getElementById('dispensaQtdInput');
@@ -767,7 +824,7 @@
         div.style.borderColor = isBaixo ? 'var(--warning-color)' : 'var(--border-color)';
         div.innerHTML = `
           <div class="produto-info">
-            <span style="font-size: 1.1rem;">${isBaixo ? '⚠️' : '📦'}</span>
+            <span style="font-size: 1.1rem;">${isBaixo ? '⚠️️' : '📦'}</span>
             <div>
               <span class="produto-nome"><strong>${item.nome}</strong></span><br>
               <small style="color: #7f8c8d; font-size: 0.75rem;">Setor: ${item.setor} | Mín: ${item.minimo}</small>
