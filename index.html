@@ -180,7 +180,7 @@ function taxa(d){ // unidades consumidas por dia (média dos últimos 3 ciclos v
 }
 const estQtd=d=>Math.max(0,d.qtd-taxa(d)*(Date.now()-d.at)/DIA);
 const diasRest=d=>{const t=taxa(d);return t>0?estQtd(d)/t:null};
-const precisa=d=>{const dr=diasRest(d);return estQtd(d)<=d.minimo||(dr!==null&&dr<=LEAD)};
+const precisa=d=>{const dr=diasRest(d),e=estQtd(d);return e<=0||e<d.minimo||(dr!==null&&dr<=LEAD)};
 const ativo=d=>precisa(d)&&(!d.adiadoAte||d.adiadoAte<Date.now());
 function repor(d,q){
   const n=Date.now(),e=estQtd(d),ab=d.ciclos[d.ciclos.length-1];
@@ -349,10 +349,13 @@ function limparHistorico(){if(confirm('Limpar todo o histórico de compras?')){h
 /* ---------- backup ---------- */
 function exportarBackup(){
   const b={produtos,dispensa,historicoCompras:historico,tetoOrcamento:teto,versao:'2.0',dataExportacao:new Date().toISOString()};
+  const blob=new Blob([JSON.stringify(b,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
-  a.href='data:text/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(b,null,2));
+  a.href=url;
   a.download=`stokfy_backup_${new Date().toISOString().slice(0,10)}.json`;
   document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 function importarBackup(ev){
   const f=ev.target.files[0];if(!f)return;
