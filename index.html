@@ -236,7 +236,6 @@
       min-width: 0;
     }
 
-    /* Grade de Sugestões Rápidas (Zero Digitação) */
     .sugestoes-grid {
       display: flex;
       flex-wrap: wrap;
@@ -499,7 +498,6 @@
         <div class="card-title">📦 Dispensa Doméstica</div>
         <p style="font-size: 0.8rem; color: #7f8c8d; margin-bottom: 10px;">Toque nos itens frequentes abaixo para adicionar com 1 clique (Zero Digitação):</p>
 
-        <!-- Atalhos de Sugestões Frequentes -->
         <div class="sugestoes-grid">
           <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Café')">+ ☕ Café</button>
           <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Azeite')">+ 🫒 Azeite</button>
@@ -515,7 +513,6 @@
           <button class="sugestao-pill" onclick="adicionarSugestaoDispensa('Ovos')">+ 🥚 Ovos</button>
         </div>
 
-        <!-- Formulário manual alternativo -->
         <div style="background: var(--bg-color); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 12px;">
           <strong style="font-size: 0.8rem; display: block; margin-bottom: 6px; color: var(--primary-color);">Ou Adicionar Outro Item Manualmente</strong>
           <div style="display: flex; flex-direction: column; gap: 6px;">
@@ -564,6 +561,17 @@
         <div style="font-weight: bold; margin-bottom: 8px; font-size: 0.9rem;">Lista de Compras Efetuadas:</div>
         <div id="historicoContainer">
           <p style="font-size: 0.85rem; color: #7f8c8d;">Nenhum registo de compra efetuado ainda.</p>
+        </div>
+
+        <!-- SEÇÃO DE GESTÃO DE DADOS (BACKUP & RESTORE) -->
+        <div style="margin-top: 20px; border-top: 1px dashed var(--border-color); padding-top: 15px;">
+          <strong style="font-size: 0.9rem; display: block; margin-bottom: 8px; color: var(--primary-color);">🔒 Segurança de Dados (Backup)</strong>
+          <p style="font-size: 0.75rem; color: #7f8c8d; margin-bottom: 10px;">Exporte seus dados para não perder nada ao trocar de celular.</p>
+          <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+            <button class="btn-outline" style="flex: 1; font-size: 0.8rem;" onclick="exportarBackup()">💾 Exportar Backup</button>
+            <button class="btn-outline" style="flex: 1; font-size: 0.8rem;" onclick="document.getElementById('importFile').click()">📂 Importar Backup</button>
+            <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importarBackup(event)">
+          </div>
         </div>
 
         <button class="btn-outline" style="width: 100%; border-color: var(--danger-color); color: var(--danger-color); margin-top: 15px;" onclick="limparHistorico()">Limpar Histórico de Compras</button>
@@ -751,7 +759,6 @@
       }
     }
 
-    // Função de 1 clique para adicionar sugestões frequentes na dispensa
     function adicionarSugestaoDispensa(nomeItem) {
       let existente = dispensa.find(d => d.nome.toLowerCase() === nomeItem.toLowerCase());
       if (existente) {
@@ -824,7 +831,7 @@
         div.style.borderColor = isBaixo ? 'var(--warning-color)' : 'var(--border-color)';
         div.innerHTML = `
           <div class="produto-info">
-            <span style="font-size: 1.1rem;">${isBaixo ? '⚠️️' : '📦'}</span>
+            <span style="font-size: 1.1rem;">${isBaixo ? '⚠️' : '📦'}</span>
             <div>
               <span class="produto-nome"><strong>${item.nome}</strong></span><br>
               <small style="color: #7f8c8d; font-size: 0.75rem;">Setor: ${item.setor} | Mín: ${item.minimo}</small>
@@ -1068,6 +1075,66 @@
         renderizarComparativoUltima();
         salvarKpi();
       }
+    }
+
+    // --- FUNÇÕES DE BACKUP E RESTAURAÇÃO ---
+    function exportarBackup() {
+      const dadosBackup = {
+        produtos: produtos,
+        dispensa: dispensa,
+        historicoCompras: historicoCompras,
+        ultimaComparacao: ultimaComparacao,
+        tetoOrcamento: tetoOrcamento,
+        versao: "1.0",
+        dataExportacao: new Date().toISOString()
+      };
+
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dadosBackup, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `stokfy_backup_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importarBackup(event) {
+      const arquivo = event.target.files[0];
+      if (!arquivo) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const conteudo = JSON.parse(e.target.result);
+          if (conteudo && conteudo.historicoCompras !== undefined) {
+            produtos = conteudo.produtos || [];
+            dispensa = conteudo.dispensa || [];
+            historicoCompras = conteudo.historicoCompras || [];
+            ultimaComparacao = conteudo.ultimaComparacao || null;
+            tetoOrcamento = conteudo.tetoOrcamento || 0;
+
+            localStorage.setItem('stokfy_produtos', JSON.stringify(produtos));
+            localStorage.setItem('stokfy_dispensa', JSON.stringify(dispensa));
+            localStorage.setItem('stokfy_historico', JSON.stringify(historicoCompras));
+            if(ultimaComparacao) localStorage.setItem('stokfy_ultima_comp', JSON.stringify(ultimaComparacao));
+            localStorage.setItem('stokfy_teto', tetoOrcamento);
+
+            renderizarLista();
+            renderizarDispensa();
+            renderizarHistorico();
+            renderizarComparativoUltima();
+            salvarKpi();
+
+            alert('Backup restaurado com sucesso!');
+          } else {
+            alert('Arquivo de backup inválido ou corrompido.');
+          }
+        } catch (err) {
+          alert('Erro ao ler o arquivo JSON.');
+        }
+      };
+      reader.readAsText(arquivo);
+      event.target.value = ''; // Reseta o input file
     }
 
     function mudarAba(abaId, elementoBtn) {
